@@ -1,0 +1,53 @@
+from django.urls import path
+
+from . import views
+from .support.views_reply import support_reply
+
+app_name = "market"
+
+urlpatterns = [
+    path("", views.home, name="home"),
+    path("about/", views.about, name="about"),
+    path("rules/", views.rules, name="rules"),
+    path("links/", views.useful_links, name="useful_links"),
+    path("home-live-search/", views.home_live_search, name="home_live_search"),
+    path("listings/", views.listing_list, name="listing_list"),
+    path("my/", views.my_listings, name="my_listings"),
+    path("listing/<int:pk>/toggle-status/", views.listing_toggle_status, name="listing_toggle_status"),
+    path("listing/<int:pk>/boost/", views.listing_boost, name="listing_boost"),
+    path("profile/", views.profile_view, name="profile"),
+    path("guarantors/", views.guarantor_list, name="guarantors"),
+    path("seller/<int:user_id>/", views.seller_detail, name="seller_detail"),
+    path(
+        "seller/<int:user_id>/reviews/",
+        views.seller_reviews,
+        name="seller_reviews",
+    ),
+    path("heartbeat/", views.heartbeat, name="heartbeat"),
+    path("listing/new/", views.listing_create, name="listing_create"),
+    path("listing/<int:pk>/", views.listing_detail, name="listing_detail"),
+    path("listing/<int:pk>/edit/", views.listing_edit, name="listing_edit"),
+    path("listing/<int:pk>/delete/", views.listing_delete, name="listing_delete"),
+    path("chat/", views.conversation_list, name="conversation_list"),
+    path("chat/<int:pk>/", views.conversation_detail, name="conversation_detail"),
+    path("chat/<int:pk>/send/", views.conversation_send_message, name="conversation_send_message"),
+    path("chat/<int:pk>/request-purchase/", views.conversation_request_purchase, name="conversation_request_purchase"),
+    path("chat/<int:pk>/offer-sell/", views.conversation_offer_sell, name="conversation_offer_sell"),
+    path("chat/<int:pk>/cancel-purchase/", views.conversation_cancel_purchase, name="conversation_cancel_purchase"),
+    path("chat/<int:pk>/complete-deal/", views.conversation_complete_deal, name="conversation_complete_deal"),
+    path("chat/<int:pk>/accept-sell-offer/", views.conversation_accept_sell_offer, name="conversation_accept_sell_offer"),
+    path("chat/<int:pk>/complete-barter/", views.conversation_complete_barter, name="conversation_complete_barter"),
+    path("chat/<int:pk>/review/", views.conversation_submit_review, name="conversation_submit_review"),
+    path("chat/<int:pk>/review-reply/", views.conversation_submit_review_reply, name="conversation_submit_review_reply"),
+    path("chat/with/<int:user_id>/", views.conversation_with_seller, name="conversation_with_seller"),
+    path("global-chat/", views.global_chat_api, name="global_chat_api"),
+    path("support/", views.support_hub, name="support"),
+    path("support/new/", views.support_new, name="support_new"),
+    path("support/my/", views.support_my, name="support_my"),
+    path("support/faq/", views.support_faq, name="support_faq"),
+    path("support/thanks/", views.support_thanks, name="support_thanks"),
+    path("support/dispute/<int:conversation_id>/", views.support_dispute, name="support_dispute"),
+    path("support/ticket/<int:pk>/reply/", support_reply, name="support_reply"),
+    path("premium/", views.premium_options, name="premium_options"),
+]
+

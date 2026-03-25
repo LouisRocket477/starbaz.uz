@@ -1,0 +1,697 @@
+/* ===== Рейтинг звёздами ===== */
+.rating-stars .star {
+    cursor: pointer;
+    font-size: 20px;
+    color: #4b5563;
+    user-select: none;
+}
+
+.rating-stars .star.selected,
+.rating-stars .star.hover {
+    color: #facc15;
+}
+
+/* ===== Страница объявления ===== */
+.listing-detail-page-wrapper {
+    position: relative;
+    z-index: 1; /* контент поверх фонового canvas */
+}
+
+.listing-detail-page {
+    align-items: flex-start;
+}
+
+/* Фоновый canvas со звёздами только на странице карточки */
+.listing-stars-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ===== Отзывы о продавце — компактный вид ===== */
+.review-item {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.25);
+}
+.review-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.review-item + .review-item {
+    margin-top: 0.4rem;
+}
+.review-item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+.review-item-avatar img,
+.review-item-avatar .review-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.review-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(71, 85, 105, 0.6);
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+.review-item-meta {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.35rem;
+}
+.review-item-author {
+    font-weight: 600;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+}
+.review-item-date {
+    font-size: 0.7rem;
+    color: #64748b;
+    white-space: nowrap;
+}
+.review-item-rating {
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+}
+.review-rating-text {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-left: 0.3rem;
+}
+.review-item-text {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+    margin-bottom: 0;
+}
+.review-item-text p {
+    margin-bottom: 0.25rem;
+}
+.review-item-text p:last-child {
+    margin-bottom: 0;
+}
+.review-reply-block {
+    margin-top: 0.4rem;
+    padding: 0.45rem 0.75rem;
+    padding-left: 0.85rem;
+    border-left: 2px solid rgba(56, 189, 248, 0.55);
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 0 0.4rem 0.4rem 0;
+}
+.review-reply-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #94a3b8;
+    margin-bottom: 0.2rem;
+}
+.review-reply-text {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+}
+
+/* ===== Левая колонка с фото ===== */
+.listing-detail-image-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    background: radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.06), transparent 50%),
+                rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.listing-detail-image-card .listing-main-image-wrapper {
+    border-radius: 1rem;
+}
+
+.listing-main-image-wrapper {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    aspect-ratio: 1;
+    min-height: 280px;
+}
+
+.listing-main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+}
+
+.listing-detail-image-card:hover .listing-main-image {
+    transform: scale(1.02);
+}
+
+.listing-gallery-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+}
+
+.listing-gallery-thumb {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    cursor: zoom-in;
+    border: 2px solid rgba(71, 85, 105, 0.6);
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.listing-gallery-thumb:hover {
+    border-color: rgba(56, 189, 248, 0.5);
+    transform: scale(1.03);
+}
+
+.listing-gallery-thumb-active {
+    border-color: #facc15;
+    box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.3);
+}
+
+/* ===== Правая колонка, шапка и цена ===== */
+.listing-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.listing-detail-category {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+}
+
+.listing-detail-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.listing-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.55rem;
+    border-radius: 0.4rem;
+    border: none;
+}
+.listing-badge-buy { background: linear-gradient(135deg, #22c55e, #16a34a); color: #0b1120; }
+.listing-badge-sell { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0b1120; }
+.listing-badge-trade { background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: #0b1120; }
+.listing-badge-barter { background: rgba(100, 116, 139, 0.6); color: #e2e8f0; }
+
+.listing-detail-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 0;
+    color: #f1f5f9;
+    letter-spacing: -0.01em;
+}
+
+.listing-detail-price-block {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(34, 197, 94, 0.08));
+    border-radius: 0.75rem;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-left: 3px solid rgba(56, 189, 248, 0.6);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+}
+
+.listing-price-label {
+    display: block;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.listing-price-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e5e7eb;
+}
+.listing-price-green {
+    color: #22c55e;
+    font-size: 1.1rem;
+}
+
+.listing-discount-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #0b1120;
+    border-radius: 0.35rem;
+    line-height: 1;
+    vertical-align: middle;
+    transform: translateY(-5px);
+}
+
+/* ===== Бартер и описание ===== */
+.listing-detail-barter {
+    margin-bottom: 0;
+}
+
+.listing-barter-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+}
+
+.listing-barter-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+}
+
+.listing-barter-tag {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    background: rgba(51, 65, 85, 0.6);
+    color: #cbd5e1;
+    border-radius: 0.35rem;
+    border: 1px solid rgba(71, 85, 105, 0.5);
+}
+
+.listing-barter-custom {
+    background: rgba(56, 189, 248, 0.12);
+    color: #7dd3fc;
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.listing-detail-description {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+}
+
+/* ===== Правая колонка — карточка ===== */
+.listing-detail-sidebar {
+    background: radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.06), transparent 45%),
+                radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.05), transparent 45%),
+                rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 1rem;
+    border-left: 3px solid rgba(56, 189, 248, 0.5);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.listing-detail-sidebar .card-body {
+    padding: 1rem 1.2rem;
+}
+
+/* ===== Сетка информации ===== */
+.listing-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-size: 0.72rem;
+}
+.listing-info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+.listing-info-row:last-child {
+    border-bottom: none;
+}
+.listing-info-row > i,
+.listing-info-row > .listing-info-icon {
+    flex-shrink: 0;
+    width: 0.8rem;
+    font-size: 0.7rem;
+    color: #6b7280;
+    opacity: 0.9;
+}
+.listing-info-label {
+    flex-shrink: 0;
+    color: #94a3b8;
+    min-width: 3.5rem;
+    font-size: 0.7rem;
+}
+.listing-info-value {
+    flex-grow: 1;
+    color: #e5e7eb;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===== Мини‑чат на странице объявления (общий вид) ===== */
+.listing-chat-wrapper {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(71, 85, 105, 0.8);
+    border-radius: 0.9rem;
+    padding: 0.8rem;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.85);
+}
+
+.listing-chat-messages {
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 0.55rem 0.6rem;
+    background: rgba(2, 6, 23, 0.65);
+    border-radius: 0.7rem;
+    border: 1px solid rgba(71, 85, 105, 0.7);
+}
+
+/* Остальные стили мини-чата (взяты из рабочего варианта) */
+.listing-chat-row {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+}
+
+.listing-chat-block {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.listing-chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    gap: 0.5rem;
+}
+
+.listing-chat-header-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.listing-chat-seller-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #475569, #334155);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+}
+
+.listing-chat-seller-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.listing-chat-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 0 0 0.15rem 0;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+}
+
+.listing-chat-seller-link {
+    font-size: 0.78rem;
+    color: #38bdf8;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.listing-chat-seller-link:hover {
+    color: #7dd3fc;
+    text-decoration: underline;
+}
+
+.listing-chat-badge {
+    flex-shrink: 0;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.4rem;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.4), rgba(34, 197, 94, 0.3));
+    color: #e2e8f0;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.listing-chat-actions-block {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(56, 189, 248, 0.06);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 0.65rem;
+    padding: 0.35rem 0.5rem;
+}
+
+.listing-chat-actions-sep {
+    padding: 0 0.25rem;
+    font-style: italic;
+}
+
+.listing-chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.listing-chat-messages::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 999px;
+}
+
+.listing-chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 999px;
+}
+
+.listing-chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.55);
+}
+
+.listing-chat-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0.75rem;
+    text-align: center;
+}
+
+.listing-chat-empty i {
+    font-size: 1.5rem;
+    color: rgba(148, 163, 184, 0.5);
+    margin-bottom: 0.4rem;
+}
+
+.listing-chat-empty p {
+    margin: 0 0 0.2rem 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.listing-chat-empty span {
+    font-size: 0.72rem;
+    color: #64748b;
+}
+
+.listing-chat-msg {
+    margin-bottom: 0.5rem;
+}
+
+.listing-chat-msg:last-child {
+    margin-bottom: 0;
+}
+
+.listing-chat-msg-me {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.listing-chat-msg-them {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.listing-chat-msg-head {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.2rem;
+    width: 100%;
+}
+
+.listing-chat-msg-me .listing-chat-msg-head {
+    justify-content: flex-end;
+}
+
+.listing-chat-msg-them .listing-chat-msg-head {
+    justify-content: flex-start;
+}
+
+.listing-chat-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.listing-chat-avatar-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #475569, #334155);
+    color: #e2e8f0;
+    font-size: 0.6rem;
+    font-weight: 700;
+}
+
+.listing-chat-msg-meta {
+    font-size: 0.66rem;
+    color: #94a3b8;
+}
+
+.listing-chat-bubble {
+    max-width: 96%;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    border-radius: 0.75rem;
+    word-break: break-word;
+}
+
+.listing-chat-msg-me .listing-chat-bubble {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.35), rgba(56, 189, 248, 0.25));
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #e2e8f0;
+    border-top-right-radius: 0.25rem;
+}
+
+.listing-chat-msg-them .listing-chat-bubble {
+    background: rgba(51, 65, 85, 0.6);
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    color: #e2e8f0;
+    border-top-left-radius: 0.25rem;
+}
+
+.listing-chat-form-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.listing-chat-input {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #e2e8f0;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    border-radius: 0.5rem;
+    resize: none;
+    min-height: 44px;
+    max-height: 120px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    flex: 1;
+}
+
+.listing-chat-input::placeholder {
+    color: #64748b;
+}
+
+.listing-chat-input:focus {
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+    outline: none;
+}
+
+.listing-chat-full-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.listing-chat-full-btn:hover {
+    background: rgba(56, 189, 248, 0.22);
+    color: #7dd3fc;
+    border-color: rgba(56, 189, 248, 0.5);
+}
+
+.listing-chat-hint {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.65rem;
+    color: #64748b;
+}
+
+@media (max-width: 575.98px) {
+    .listing-chat-form-row {
+        flex-direction: column;
+    }
+    .listing-chat-full-btn {
+        width: 100%;
+    }
+}
+

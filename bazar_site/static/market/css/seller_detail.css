@@ -1,0 +1,1052 @@
+/* Страница профиля продавца — аккуратный профессиональный вид */
+
+.seller-detail-page {
+    --seller-gap: 1.5rem;
+}
+.seller-detail-page > [class*="col-"] {
+    padding-left: calc(var(--seller-gap) / 2);
+    padding-right: calc(var(--seller-gap) / 2);
+}
+
+/* Карточка профиля — базовый спокойный стиль */
+.seller-profile-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.06), transparent 45%),
+        rgba(15, 23, 42, 0.94);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    position: relative;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.seller-profile-card:hover {
+    box-shadow:
+        0 14px 32px rgba(15, 23, 42, 0.9);
+    border-color: rgba(96, 165, 250, 0.6);
+}
+
+/* Эксклюзивный космический "дым" только для стримера */
+.seller-profile-card--streamer {
+    position: relative;
+    border-color: rgba(71, 85, 105, 0.6);
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.3);
+}
+
+.seller-profile-card--streamer::before,
+.seller-profile-card--streamer::after {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.seller-profile-card--streamer::before {
+    inset: -20%;
+    background:
+        radial-gradient(circle at 10% 0%, rgba(56, 189, 248, 0.12) 0, transparent 60%),
+        radial-gradient(circle at 100% 20%, rgba(129, 140, 248, 0.16) 0, transparent 60%),
+        radial-gradient(circle at 0% 100%, rgba(52, 211, 153, 0.12) 0, transparent 60%),
+        radial-gradient(circle at 80% 90%, rgba(248, 250, 252, 0.10) 0, transparent 60%);
+    opacity: 0.6;
+    mix-blend-mode: screen;
+    filter: blur(10px);
+    animation: sellerStreamerNebula 26s ease-in-out infinite alternate;
+}
+
+.seller-profile-card--streamer::after {
+    inset: 4px;
+    background: radial-gradient(circle at 50% -10%, rgba(56, 189, 248, 0.10) 0, transparent 55%),
+                radial-gradient(circle at -10% 110%, rgba(129, 140, 248, 0.10) 0, transparent 60%);
+    opacity: 0.55;
+    mix-blend-mode: soft-light;
+}
+
+.seller-profile-body {
+    padding: 1.75rem 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Космический фон со "стреляющими" звёздами за карточкой */
+.seller-sky-container {
+    position: absolute;
+    inset: -40%;
+    transform: rotateZ(35deg);
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+    opacity: 0.9;
+}
+
+.seller-sky-container .seller-star {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 1px;
+    /* Базовый "космический" след для стримера: холодные сине‑фиолетовые оттенки */
+    background: linear-gradient(
+        -45deg,
+        #bfdbfe,
+        rgba(56, 189, 248, 0.0),
+        rgba(129, 140, 248, 0.0)
+    );
+    filter:
+        drop-shadow(0 0 6px #bfdbfe)
+        drop-shadow(0 0 10px #1d4ed8);
+    /* Скорость падения звёзд */
+    animation:
+        seller-star-tail 3400ms ease-in-out infinite,
+        seller-star-shoot 3400ms ease-in-out infinite;
+}
+
+/* Голубые космические звёзды для стримера */
+.seller-sky-container--streamer .seller-star {
+    /* Космический градиент без зелёного: голубой → синевато‑фиолетовый */
+    background: linear-gradient(
+        -45deg,
+        #e0f2fe,
+        #60a5fa,
+        #a855f7,
+        rgba(15, 23, 42, 0)
+    );
+    filter:
+        drop-shadow(0 0 9px rgba(191, 219, 254, 0.9))
+        drop-shadow(0 0 16px rgba(129, 140, 248, 0.9));
+}
+
+.seller-sky-container .seller-star::before,
+.seller-sky-container .seller-star::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(-45deg, rgba(0, 0, 255, 0), #eff6ff, rgba(0, 0, 255, 0));
+    border-radius: 100%;
+    transform: translateX(50%) rotateZ(45deg);
+    animation: seller-star-shine 3200ms ease-in-out infinite;
+}
+
+.seller-sky-container .seller-star::after {
+    transform: translateX(50%) rotateZ(-45deg);
+}
+
+/* 10 звёзд с разными траекториями и задержками — голубые для стримера */
+.seller-sky-container .seller-star:nth-child(1) {
+    top: 14%;
+    left: 6%;
+    transform: scale(0.7) rotateZ(-18deg);
+    animation-delay: 700ms;
+}
+.seller-sky-container .seller-star:nth-child(1)::before,
+.seller-sky-container .seller-star:nth-child(1)::after {
+    animation-delay: 700ms;
+}
+
+.seller-sky-container .seller-star:nth-child(2) {
+    top: 24%;
+    left: 78%;
+    transform: scale(0.85) rotateZ(8deg);
+    animation-delay: 1500ms;
+}
+.seller-sky-container .seller-star:nth-child(2)::before,
+.seller-sky-container .seller-star:nth-child(2)::after {
+    animation-delay: 1500ms;
+}
+
+.seller-sky-container .seller-star:nth-child(3) {
+    top: 38%;
+    left: 28%;
+    transform: scale(0.6) rotateZ(22deg);
+    animation-delay: 2300ms;
+}
+.seller-sky-container .seller-star:nth-child(3)::before,
+.seller-sky-container .seller-star:nth-child(3)::after {
+    animation-delay: 2300ms;
+}
+
+.seller-sky-container .seller-star:nth-child(4) {
+    top: 50%;
+    left: 88%;
+    transform: scale(0.8) rotateZ(-28deg);
+    animation-delay: 300ms;
+}
+.seller-sky-container .seller-star:nth-child(4)::before,
+.seller-sky-container .seller-star:nth-child(4)::after {
+    animation-delay: 300ms;
+}
+
+.seller-sky-container .seller-star:nth-child(5) {
+    top: 62%;
+    left: 14%;
+    transform: scale(0.55) rotateZ(14deg);
+    animation-delay: 2800ms;
+}
+.seller-sky-container .seller-star:nth-child(5)::before,
+.seller-sky-container .seller-star:nth-child(5)::after {
+    animation-delay: 2800ms;
+}
+
+.seller-sky-container .seller-star:nth-child(6) {
+    top: 70%;
+    left: 48%;
+    transform: scale(0.78) rotateZ(-16deg);
+    animation-delay: 3600ms;
+}
+.seller-sky-container .seller-star:nth-child(6)::before,
+.seller-sky-container .seller-star:nth-child(6)::after {
+    animation-delay: 3600ms;
+}
+
+.seller-sky-container .seller-star:nth-child(7) {
+    top: 82%;
+    left: 74%;
+    transform: scale(0.6) rotateZ(26deg);
+    animation-delay: 4300ms;
+}
+.seller-sky-container .seller-star:nth-child(7)::before,
+.seller-sky-container .seller-star:nth-child(7)::after {
+    animation-delay: 4300ms;
+}
+
+.seller-sky-container .seller-star:nth-child(8) {
+    top: 18%;
+    left: 46%;
+    transform: scale(0.5) rotateZ(-9deg);
+    animation-delay: 1100ms;
+}
+.seller-sky-container .seller-star:nth-child(8)::before,
+.seller-sky-container .seller-star:nth-child(8)::after {
+    animation-delay: 1100ms;
+}
+
+.seller-sky-container .seller-star:nth-child(9) {
+    top: 32%;
+    left: 18%;
+    transform: scale(0.47) rotateZ(32deg);
+    animation-delay: 1950ms;
+}
+.seller-sky-container .seller-star:nth-child(9)::before,
+.seller-sky-container .seller-star:nth-child(9)::after {
+    animation-delay: 1950ms;
+}
+
+.seller-sky-container .seller-star:nth-child(10) {
+    top: 74%;
+    left: 34%;
+    transform: scale(0.52) rotateZ(-24deg);
+    animation-delay: 4800ms;
+}
+.seller-sky-container .seller-star:nth-child(10)::before,
+.seller-sky-container .seller-star:nth-child(10)::after {
+    animation-delay: 4800ms;
+}
+
+/* Золотой вариант "звёздного дождя" для премиум‑продавца:
+   тот же стиль, что у стримера, но звёзды тёплые золотые */
+/* Золотые звёзды для премиум‑продавца */
+.seller-sky-container--premium {
+    opacity: 1;
+}
+
+.seller-sky-container--premium .seller-star {
+    /* Тёплый золотой след поверх базового космического */
+    background: linear-gradient(
+        -45deg,
+        #facc15,
+        rgba(252, 211, 77, 0.0)
+    );
+    filter:
+        drop-shadow(0 0 14px rgba(250, 250, 210, 0.95))
+        drop-shadow(0 0 20px rgba(250, 204, 21, 0.95));
+}
+
+.seller-sky-container--premium .seller-star::before,
+.seller-sky-container--premium .seller-star::after {
+    /* Золотой "крест" вспышки вместо холодно‑белого */
+    background: linear-gradient(
+        -45deg,
+        rgba(0, 0, 0, 0),
+        rgba(253, 224, 71, 0.95),
+        rgba(0, 0, 0, 0)
+    );
+}
+
+@keyframes seller-star-shine {
+    0% {
+        width: 0;
+        opacity: 0;
+    }
+    40% {
+        width: 30px;
+        opacity: 1;
+    }
+    100% {
+        width: 0;
+        opacity: 0;
+    }
+}
+
+@keyframes seller-star-tail {
+    0% {
+        width: 0;
+        opacity: 0;
+    }
+    25% {
+        width: 90px;
+        opacity: 1;
+    }
+    100% {
+        width: 0;
+        opacity: 0;
+    }
+}
+
+@keyframes seller-star-shoot {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(260px);
+    }
+}
+
+/* Анимация радужной обводки стримера */
+@keyframes sellerStreamerBorder {
+    0% {
+        opacity: 0.7;
+        background-position: 0% 50%;
+    }
+    50% {
+        opacity: 1;
+        background-position: 100% 50%;
+    }
+    100% {
+        opacity: 0.7;
+        background-position: 0% 50%;
+    }
+}
+
+/* Медленное движение космического "дыма" вокруг карточки стримера */
+@keyframes sellerStreamerNebula {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 0.45;
+    }
+    50% {
+        transform: translate3d(12px, -16px, 0) scale(1.04);
+        opacity: 0.92;
+    }
+    100% {
+        transform: translate3d(-10px, 14px, 0) scale(1.02);
+        opacity: 0.5;
+    }
+}
+
+
+.seller-avatar-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+.seller-avatar {
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 50%;
+    cursor: zoom-in;
+    border: 3px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition:
+        border-color 0.25s ease,
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.seller-avatar:hover {
+    border-color: rgba(96, 165, 250, 0.9);
+    transform: scale(1.05) translateY(-1px);
+    box-shadow:
+        0 0 0 2px rgba(15, 23, 42, 0.95),
+        0 0 30px rgba(96, 165, 250, 0.9);
+}
+
+.seller-avatar-premium {
+    position: relative;
+    border-color: rgba(250, 204, 21, 0.9);
+    box-shadow:
+        0 0 0 2px rgba(23, 37, 84, 0.95),
+        0 0 24px rgba(250, 204, 21, 0.85);
+    animation: premiumAvatarGlow 4s ease-in-out infinite alternate;
+}
+
+.seller-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #334155, #475569);
+    border: 3px solid rgba(56, 189, 248, 0.35);
+}
+
+.seller-avatar-initial {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+.seller-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.premium-crown-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    font-size: 0.9rem;
+    animation: premiumCrownSparkle 3s ease-in-out infinite;
+}
+
+.premium-crown-badge img.premium-crown-img {
+    width: 16px;
+    height: 16px;
+    position: relative;
+    z-index: 1;
+    display: block;
+    filter: drop-shadow(0 0 4px rgba(250, 250, 210, 0.95));
+}
+
+.premium-crown-badge::after {
+    content: none;
+}
+
+.seller-stats {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+/* Социальные иконки */
+.social-links-inline {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+}
+
+.social-links-inline .social-icon {
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: rgba(51, 65, 85, 0.5);
+    color: #94a3b8;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.social-links-inline .social-icon i {
+    font-size: 1.05rem;
+    line-height: 1;
+}
+
+.social-links-inline .social-icon img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.social-links-inline .social-icon:hover {
+    background: rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+}
+
+/* Анимированная плашка «Стример» */
+.streamer-badge-animated {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.035rem 0.32rem;
+    border-radius: 999px;
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #e5e7eb;
+    background: linear-gradient(135deg, #020617, #0b1120, #0f172a, #020617);
+    background-size: 320% 320%;
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 0 18px rgba(94, 234, 212, 0.9),
+        0 0 30px rgba(56, 189, 248, 0.9);
+    overflow: hidden;
+    animation:
+        streamerGlow 3.5s ease-in-out infinite alternate,
+        streamerBackground 18s linear infinite;
+}
+
+.streamer-badge-animated::before {
+    content: "";
+    position: absolute;
+    inset: -30%;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 15% 30%, rgba(148, 163, 253, 0.55) 0, transparent 55%),
+        radial-gradient(circle at 85% 25%, rgba(56, 189, 248, 0.45) 0, transparent 55%),
+        radial-gradient(circle at 25% 80%, rgba(52, 211, 153, 0.5) 0, transparent 55%),
+        radial-gradient(circle at 70% 75%, rgba(248, 250, 252, 0.35) 0, transparent 55%);
+    opacity: 0.35;
+    mix-blend-mode: screen;
+    animation: streamerStars 5s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.streamer-badge-animated span {
+    position: relative;
+    z-index: 1;
+}
+
+.streamer-badge-animated::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(191, 219, 254, 0.6);
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.9);
+    opacity: 0.9;
+    pointer-events: none;
+    animation: streamerPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes streamerGlow {
+    0% {
+        transform: translateY(0) scale(1);
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 0 10px rgba(94, 234, 212, 0.7),
+        0 0 16px rgba(56, 189, 248, 0.6);
+    }
+    40% {
+        transform: translateY(-0.5px) scale(1.02);
+        box-shadow:
+            0 0 0 1px rgba(248, 250, 252, 0.95),
+            0 0 26px rgba(125, 211, 252, 1),
+            0 0 38px rgba(59, 130, 246, 1);
+    }
+    70% {
+        transform: translateY(-1px) scale(1.03);
+        box-shadow:
+            0 0 0 1px rgba(248, 250, 252, 0.95),
+            0 0 26px rgba(125, 211, 252, 1),
+            0 0 38px rgba(59, 130, 246, 1);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        box-shadow:
+            0 0 0 1px rgba(15, 23, 42, 1),
+            0 0 18px rgba(94, 234, 212, 0.9),
+            0 0 28px rgba(56, 189, 248, 0.85);
+    }
+}
+
+/* Анимированная плашка «Премиум» — золотой вариант, летает вместе со «стримерской» */
+.premium-badge-animated {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.035rem 0.32rem;
+    border-radius: 999px;
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #111827;
+    background: linear-gradient(135deg, #f97316, #facc15, #fde68a, #f97316);
+    background-size: 320% 320%;
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 0 12px rgba(250, 204, 21, 0.7),
+        0 0 18px rgba(252, 211, 77, 0.8);
+    overflow: hidden;
+    animation:
+        streamerGlow 3.5s ease-in-out infinite alternate,
+        streamerBackground 18s linear infinite;
+}
+
+.premium-badge-animated::before {
+    content: "";
+    position: absolute;
+    inset: -30%;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 15% 30%, rgba(253, 224, 71, 0.75) 0, transparent 55%),
+        radial-gradient(circle at 85% 25%, rgba(252, 211, 77, 0.6) 0, transparent 55%),
+        radial-gradient(circle at 25% 80%, rgba(251, 191, 36, 0.6) 0, transparent 55%),
+        radial-gradient(circle at 70% 75%, rgba(254, 249, 195, 0.5) 0, transparent 55%);
+    opacity: 0.4;
+    mix-blend-mode: screen;
+    animation: streamerStars 5s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.premium-badge-animated span {
+    position: relative;
+    z-index: 1;
+}
+
+.premium-badge-animated::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(254, 249, 195, 0.85);
+    box-shadow: 0 0 18px rgba(250, 204, 21, 1);
+    opacity: 0.95;
+    pointer-events: none;
+    animation: streamerPulse 2.6s ease-in-out infinite;
+}
+
+/* Компактный бейдж ID рядом с остальными */
+.seller-id-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.03rem 0.26rem;
+    border-radius: 999px;
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(148, 163, 184, 0.35);
+    color: #e5e7eb;
+    border: 1px solid rgba(148, 163, 184, 0.9);
+}
+
+@keyframes streamerBackground {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes streamerPulse {
+    0% {
+        opacity: 0.4;
+        transform: scale(0.98);
+        box-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.03);
+        box-shadow: 0 0 20px rgba(56, 189, 248, 1);
+    }
+    100% {
+        opacity: 0.4;
+        transform: scale(0.98);
+        box-shadow: 0 0 8px rgba(56, 189, 248, 0.7);
+    }
+}
+
+@keyframes streamerStars {
+    0% {
+        transform: translate3d(-3%, -2%, 0);
+        opacity: 0.25;
+    }
+    25% {
+        transform: translate3d(3%, -4%, 0);
+        opacity: 0.4;
+    }
+    50% {
+        transform: translate3d(4%, 3%, 0);
+        opacity: 0.3;
+    }
+    100% {
+        transform: translate3d(-2%, 2%, 0);
+        opacity: 0.25;
+    }
+}
+
+@keyframes premiumAvatarGlow {
+    0% {
+        box-shadow:
+            0 0 0 2px rgba(23, 37, 84, 0.95),
+            0 0 16px rgba(250, 204, 21, 0.6);
+    }
+    50% {
+        box-shadow:
+            0 0 0 2px rgba(23, 37, 84, 0.95),
+            0 0 26px rgba(250, 250, 210, 0.95);
+    }
+    100% {
+        box-shadow:
+            0 0 0 2px rgba(23, 37, 84, 0.95),
+            0 0 18px rgba(250, 204, 21, 0.7);
+    }
+}
+
+@keyframes premiumCrownSparkle {
+    0% {
+        transform: translateY(0) scale(1);
+        filter: brightness(1);
+    }
+    50% {
+        transform: translateY(-1px) scale(1.06);
+        filter: brightness(1.2);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        filter: brightness(1);
+    }
+}
+
+@keyframes premiumCrownHalo {
+    0% {
+        opacity: 0;
+        transform: rotate(0deg) scale(0.9);
+    }
+    50% {
+        opacity: 0.95;
+        transform: rotate(180deg) scale(1.05);
+    }
+    100% {
+        opacity: 0;
+        transform: rotate(360deg) scale(0.9);
+    }
+}
+
+/* Карточка отзывов */
+.seller-reviews-card {
+    border-radius: 1rem;
+    border: 1px solid rgba(31, 41, 55, 0.9);
+}
+
+.seller-reviews-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    margin-bottom: 1rem;
+}
+
+.seller-reviews-card .mb-3.border-bottom {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-color: rgba(71, 85, 105, 0.4) !important;
+}
+
+/* Карточки отзывов (review-item, review-reply) */
+.review-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.35);
+}
+.review-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.review-item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+.review-item-avatar img,
+.review-item-avatar .review-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.review-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(71, 85, 105, 0.6);
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+.review-item-meta {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+.review-item-author {
+    font-weight: 600;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+}
+.review-item-date {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+.review-item-rating {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+.review-rating-text {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-left: 0.35rem;
+}
+.review-item-text {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+    margin-bottom: 0;
+}
+.review-item-text p {
+    margin-bottom: 0.4rem;
+}
+.review-item-text p:last-child {
+    margin-bottom: 0;
+}
+.review-reply-block {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    padding-left: 1rem;
+    border-left: 3px solid rgba(56, 189, 248, 0.5);
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+.review-reply-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #94a3b8;
+    margin-bottom: 0.35rem;
+}
+.review-reply-text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+}
+
+/* Секции объявлений */
+.seller-listings-section {
+    margin-bottom: 1.5rem;
+}
+
+.seller-section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.seller-section-title i {
+    color: #38bdf8;
+    font-size: 1rem;
+}
+
+.seller-listings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.seller-list-category-group {
+    margin-bottom: 1.1rem;
+}
+
+.seller-list-parent {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    margin-bottom: 0.35rem;
+}
+
+.seller-list-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.9rem;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.10), transparent 60%),
+        rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(30, 64, 175, 0.7);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.seller-list-row:hover {
+    transform: translateY(-2px);
+    border-color: rgba(56, 189, 248, 0.9);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.9);
+}
+
+.seller-list-thumb {
+    flex: 0 0 80px;
+    height: 80px;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.seller-list-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.seller-list-main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.seller-list-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
+}
+
+.seller-list-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.seller-list-category {
+    font-size: 0.78rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(30, 64, 175, 0.75);
+    color: #dbeafe;
+}
+
+.seller-list-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    font-size: 0.72rem;
+}
+
+.seller-list-price {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 130px;
+}
+
+.seller-list-price-value {
+    text-align: right;
+    font-size: 0.85rem;
+}
+
+.seller-list-more-btn {
+    padding-inline: 0.6rem;
+    font-size: 0.75rem;
+}
+
+.seller-list-row-sold {
+    opacity: 0.88;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(148, 163, 184, 0.16), transparent 55%),
+        rgba(15, 23, 42, 0.9);
+}
+
+.seller-list-row-sold .seller-list-title {
+    color: #cbd5e1;
+}
+
+/* Пустое состояние */
+.seller-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 0.75rem;
+    border: 1px dashed rgba(71, 85, 105, 0.5);
+    color: #64748b;
+}
+
+.seller-empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+}
+
+/* Завершённые карточки — сероватый тусклый вид */
+.listing-card-sold {
+    filter: grayscale(0.4) brightness(0.85);
+    background: rgba(30, 41, 59, 0.5);
+}
+
+.listing-card-sold:hover {
+    filter: grayscale(0.2) brightness(0.92);
+}
+
+.listing-card-sold .card-body {
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.listing-card-sold .listing-card-image-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(51, 65, 85, 0.25);
+    pointer-events: none;
+}
+
+.listing-card-sold .listing-card-image-wrap {
+    position: relative;
+}
+
+.listing-card-sold .listing-card-sold-badge {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    background: rgba(51, 65, 85, 0.95);
+    color: #94a3b8;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.35rem;
+}
+
+.listing-card-sold .listing-card-footer {
+    padding-top: 0.4rem;
+}
+
+.listing-card-sold .listing-card-price .fw-bold {
+    color: #94a3b8;
+}

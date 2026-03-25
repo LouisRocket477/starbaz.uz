@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "market/_support_nav.html" %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card bg-dark border-0 shadow-sm mb-3 support-my-card">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-2">
+                    <div>
+                        <h1 class="h4 mb-1">Мои тикеты</h1>
+                        <div class="small text-muted">История обращений и ответы администрации.</div>
+                    </div>
+                    <a class="btn btn-starbaz btn-sm" href="{% url 'market:support_new' %}">
+                        <i class="bi bi-plus-circle me-1"></i> Новый тикет
+                    </a>
+                </div>
+                {% if not request.user.is_authenticated %}
+                    <p class="small text-muted">
+                        Для просмотра истории обращений нужно <a href="{% url 'account_login' %}">войти</a> или <a href="{% url 'account_signup' %}">создать аккаунт</a>.
+                    </p>
+                {% endif %}
+
+                {% if open_support_requests or closed_support_requests %}
+                    <div class="support-my-tabs">
+                        <button type="button"
+                                class="support-my-tab{% if open_support_requests %} is-active{% endif %}"
+                                data-support-tab="open"
+                                {% if not open_support_requests %}disabled{% endif %}>
+                            <i class="bi bi-hourglass-split me-1"></i>
+                            В работе
+                            <span class="support-my-tab-count">{{ open_support_requests|length|default:0 }}</span>
+                        </button>
+                        <button type="button"
+                                class="support-my-tab{% if not open_support_requests %} is-active{% endif %}"
+                                data-support-tab="closed"
+                                {% if not closed_support_requests %}disabled{% endif %}>
+                            <i class="bi bi-check2-circle me-1"></i>
+                            Закрытые
+                            <span class="support-my-tab-count support-my-tab-count--green">{{ closed_support_requests|length|default:0 }}</span>
+                        </button>
+                    </div>
+
+                    <div class="support-my-pane{% if open_support_requests %} is-active{% endif %}" data-support-pane="open">
+                        {% if open_support_requests %}
+                            <div class="support-my-list">
+                                {% for item in open_support_requests %}
+                                    <div class="support-ticket" id="ticket-{{ item.id }}">
+                                        <button class="support-ticket-head" type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#openTicket{{ item.id }}"
+                                                aria-expanded="false"
+                                                aria-controls="openTicket{{ item.id }}">
+                                            <div class="support-ticket-meta">
+                                                <div class="support-ticket-title">
+                                                    {% if item.subject %}{{ item.subject }}{% else %}Без темы{% endif %}
+                                                </div>
+                                                <div class="support-ticket-sub">
+                                                    <span>{{ item.created_at|date:"d.m.Y H:i" }}</span>
+                                                    <span class="mx-1">·</span>
+                                                    <span>{{ item.get_request_type_display }}</span>
+                                                    <span class="mx-1">·</span>
+                                                    <span class="badge bg-secondary">В работе</span>
+                                                </div>
+                                            </div>
+                                            <div class="support-ticket-chevron">
+                                                <i class="bi bi-chevron-down"></i>
+                                            </div>
+                                        </button>
+
+                                        <div id="openTicket{{ item.id }}" class="collapse">
+                                            <div class="support-ticket-body">
+                                                <div class="support-ticket-block support-ticket-block--initial">
+                                                    <div class="support-ticket-block-title">Ваше исходное сообщение</div>
+                                                    <div class="support-ticket-block-text">{{ item.message|linebreaks }}</div>
+                                                </div>
+
+                                                {% if item.messages.all %}
+                                                    <div class="support-ticket-block support-ticket-block--thread">
+                                                        <div class="support-ticket-block-title">Переписка</div>
+                                                        <div class="support-thread">
+                                                            {% for msg in item.messages.all %}
+                                                                {% if forloop.first and msg.author_id == item.author_id and msg.text and msg.text == item.message|default:"" %}
+                                                                    {# skip duplicate of initial message #}
+                                                                {% else %}
+                                                                    <div class="support-msg{% if msg.author_id == item.author_id %} is-me{% else %} is-admin{% endif %}">
+                                                                        <div class="support-msg-head">
+                                                                            <span class="support-msg-who">
+                                                                                {% if msg.author_id == item.author_id %}
+                                                                                    Вы
+                                                                                {% elif msg.author %}
+                                                                                    Администрация ({{ msg.author.username }})
+                                                                                {% else %}
+                                                                                    Администрация
+                                                                                {% endif %}
+                                                                            </span>
+                                                                            <span class="support-msg-time">{{ msg.created_at|date:"d.m.Y H:i" }}</span>
+                                                                        </div>
+                                                                        {% if msg.text %}
+                                                                            <div class="support-msg-text">{{ msg.text|linebreaks }}</div>
+                                                                        {% endif %}
+                                                                        {% if msg.screenshot %}
+                                                                            <div class="support-msg-attach">
+                                                                                <a href="{{ msg.screenshot.url }}" target="_blank" class="text-decoration-underline">Открыть скриншот</a>
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+
+                                                {% if item.admin_reply %}
+                                                    <div class="support-ticket-highlight support-ticket-highlight--admin">
+                                                        <div class="support-ticket-highlight-title">Итоговый ответ администрации</div>
+                                                        <div class="support-ticket-highlight-text">{{ item.admin_reply|linebreaks }}</div>
+                                                    </div>
+                                                {% endif %}
+
+                                                <form method="post" enctype="multipart/form-data" action="{% url 'market:support_reply' item.id %}" class="support-reply-form">
+                                                    {% csrf_token %}
+                                                    <div class="support-reply-grid">
+                                                        <div>
+                                                            <label class="form-label">Ответить</label>
+                                                            <textarea name="reply_message" rows="3" class="form-control form-control-sm" placeholder="Добавьте детали, чтобы администрация быстрее разобралась"></textarea>
+                                                        </div>
+                                                        <div>
+                                                            <label class="form-label">Скриншот (опционально)</label>
+                                                            <input type="file" name="reply_screenshot" class="form-control form-control-sm" accept="image/*">
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-outline-light btn-sm">
+                                                        <i class="bi bi-send me-1"></i> Отправить
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="support-my-empty">Открытых обращений нет.</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="support-my-pane{% if not open_support_requests %} is-active{% endif %}" data-support-pane="closed">
+                        {% if closed_support_requests %}
+                            <div class="support-my-list">
+                                {% for item in closed_support_requests %}
+                                    <div class="support-ticket support-ticket--closed" id="ticket-{{ item.id }}">
+                                        <button class="support-ticket-head" type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#closedTicket{{ item.id }}"
+                                                aria-expanded="false"
+                                                aria-controls="closedTicket{{ item.id }}">
+                                            <div class="support-ticket-meta">
+                                                <div class="support-ticket-title">
+                                                    {% if item.subject %}{{ item.subject }}{% else %}Без темы{% endif %}
+                                                </div>
+                                                <div class="support-ticket-sub">
+                                                    <span>{{ item.created_at|date:"d.m.Y H:i" }}</span>
+                                                    <span class="mx-1">·</span>
+                                                    <span>{{ item.get_request_type_display }}</span>
+                                                    <span class="mx-1">·</span>
+                                                    <span class="badge bg-success">Закрыт</span>
+                                                </div>
+                                            </div>
+                                            <div class="support-ticket-chevron">
+                                                <i class="bi bi-chevron-down"></i>
+                                            </div>
+                                        </button>
+
+                                        <div id="closedTicket{{ item.id }}" class="collapse">
+                                            <div class="support-ticket-body">
+                                                <div class="support-ticket-block">
+                                                    <div class="support-ticket-block-title">Ваше исходное сообщение</div>
+                                                    <div class="support-ticket-block-text">{{ item.message|linebreaks }}</div>
+                                                </div>
+
+                                                {% if item.messages.all %}
+                                                    <div class="support-ticket-block">
+                                                        <div class="support-ticket-block-title">Переписка</div>
+                                                        <div class="support-thread">
+                                                            {% for msg in item.messages.all %}
+                                                                {% if forloop.first and msg.author_id == item.author_id and msg.text and msg.text == item.message|default:"" %}
+                                                                    {# skip duplicate of initial message #}
+                                                                {% else %}
+                                                                    <div class="support-msg{% if msg.author_id == item.author_id %} is-me{% else %} is-admin{% endif %}">
+                                                                        <div class="support-msg-head">
+                                                                            <span class="support-msg-who">
+                                                                                {% if msg.author_id == item.author_id %}
+                                                                                    Вы
+                                                                                {% elif msg.author %}
+                                                                                    Администрация ({{ msg.author.username }})
+                                                                                {% else %}
+                                                                                    Администрация
+                                                                                {% endif %}
+                                                                            </span>
+                                                                            <span class="support-msg-time">{{ msg.created_at|date:"d.m.Y H:i" }}</span>
+                                                                        </div>
+                                                                        {% if msg.text %}
+                                                                            <div class="support-msg-text">{{ msg.text|linebreaks }}</div>
+                                                                        {% endif %}
+                                                                        {% if msg.screenshot %}
+                                                                            <div class="support-msg-attach">
+                                                                                <a href="{{ msg.screenshot.url }}" target="_blank" class="text-decoration-underline">Открыть скриншот</a>
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+
+                                                {% if item.admin_reply %}
+                                                    <div class="support-ticket-highlight">
+                                                        <div class="support-ticket-highlight-title">Итоговый ответ администрации</div>
+                                                        <div class="support-ticket-highlight-text">{{ item.admin_reply|linebreaks }}</div>
+                                                    </div>
+                                                {% endif %}
+
+                                                <div class="support-my-closed-note">
+                                                    Тикет закрыт. Переписка завершена.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="support-my-empty">Закрытых обращений нет.</div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <p class="small text-muted mb-0">
+                        У вас пока нет обращений. Вы можете <a href="{% url 'market:support_new' %}">создать новый тикет</a>.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/support_my.css' %}">
+<script>
+(() => {
+  function setTab(tab) {
+    document.querySelectorAll('[data-support-tab]').forEach((b) => {
+      b.classList.toggle('is-active', b.getAttribute('data-support-tab') === tab);
+    });
+    document.querySelectorAll('[data-support-pane]').forEach((p) => {
+      p.classList.toggle('is-active', p.getAttribute('data-support-pane') === tab);
+    });
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-support-tab]');
+    if (!btn || btn.disabled) return;
+    setTab(btn.getAttribute('data-support-tab'));
+  });
+
+  // Auto-open ticket by hash: #ticket-<id>
+  try {
+    const h = (window.location.hash || '').trim();
+    if (h && h.startsWith('#ticket-')) {
+      const wrap = document.querySelector(h);
+      if (wrap) {
+        const pane = wrap.closest('[data-support-pane]');
+        if (pane) {
+          setTab(pane.getAttribute('data-support-pane'));
+        }
+        const btn = wrap.querySelector('[data-bs-toggle=\"collapse\"]');
+        if (btn) btn.click();
+      }
+    }
+  } catch (e) {}
+})();
+</script>
+{% endblock %}
+

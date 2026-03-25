@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static price_filters market_extras %}
+
+{% block content %}
+<div class="row mb-3 listing-page-row">
+    <div class="col-md-3">
+        <div class="listing-filters-card">
+            <form method="get" class="listing-filters-form">
+                {% if current_category %}
+                    <input type="hidden" name="category" value="{{ current_category }}">
+                {% endif %}
+                {% if current_sort %}
+                    <input type="hidden" name="sort" value="{{ current_sort }}">
+                {% endif %}
+                <div class="listing-filters-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Поиск" autocomplete="off">
+                    <button type="submit" class="listing-filters-search-btn">Найти</button>
+                </div>
+            </form>
+            <nav class="listing-filters-nav">
+                <a href="{% url 'market:listing_list' %}{% if search_query or current_sort %}?{% endif %}{% if search_query %}q={{ search_query|urlencode }}{% endif %}{% if search_query and current_sort %}&{% endif %}{% if current_sort %}sort={{ current_sort }}{% endif %}"
+                   class="listing-filter-item {% if not current_category %}active{% endif %}">Все</a>
+                {% for parent in categories %}
+                    <div class="listing-filter-parent">
+                        {{ parent.name }}
+                    </div>
+                    {% for category in parent.children.all %}
+                        <a href="{% url 'market:listing_list' %}?category={{ category.pk }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"
+                           class="listing-filter-item {% if current_category == category.pk|stringformat:'s' %}active{% endif %} {% if not category.active_listings_count %}empty{% endif %}">
+                            <span class="listing-filter-name">{{ category.name }}</span>
+                            <span class="listing-filter-count">{{ category.active_listings_count }}</span>
+                        </a>
+                    {% endfor %}
+                {% endfor %}
+            </nav>
+            <a href="{% url 'market:listing_list' %}" class="listing-filters-reset">Сбросить</a>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-2 gap-2 flex-wrap">
+            <h1 class="h5 mb-0 listing-page-title">Все объявления</h1>
+            <form method="get" class="d-flex align-items-center gap-2 listing-sort-form">
+                {% if current_category %}
+                    <input type="hidden" name="category" value="{{ current_category }}">
+                {% endif %}
+                {% if search_query %}
+                    <input type="hidden" name="q" value="{{ search_query }}">
+                {% endif %}
+                <span class="small text-muted d-none d-sm-inline">Сортировка:</span>
+                <select name="sort"
+                        class="form-select form-select-sm listing-sort-select"
+                        onchange="this.form.submit()">
+                    <option value="new" {% if current_sort == "new" or not current_sort %}selected{% endif %}>
+                        По новизне
+                    </option>
+                    <option value="price_asc" {% if current_sort == "price_asc" %}selected{% endif %}>
+                        По цене (сначала дешёвые)
+                    </option>
+                    <option value="price_desc" {% if current_sort == "price_desc" %}selected{% endif %}>
+                        По цене (сначала дорогие)
+                    </option>
+                    <option value="rating" {% if current_sort == "rating" %}selected{% endif %}>
+                        По рейтингу продавца
+                    </option>
+                    <option value="title" {% if current_sort == "title" %}selected{% endif %}>
+                        По названию
+                    </option>
+                </select>
+            </form>
+        </div>
+        <div class="row g-2 listing-cards-grid">
+            {% for listing in listings %}
+                <div class="listing-card-col d-flex flex-column">
+                    <div class="listing-card-link" data-href="{% url 'market:listing_detail' listing.pk %}">
+                        <div class="card h-100 listing-card {% if listing.boost_priority == 0 %}listing-card-boosted{% endif %}">
+                            <div class="listing-card-image-wrap">
+                                {% with image=listing.main_image %}
+                                    {% if image %}
+                                        <img src="{{ image.image.url }}" class="listing-card-image" alt="{{ listing.title }}">
+                                    {% else %}
+                                        <img src="{% static 'market/images/listing-default.png' %}" class="listing-card-image" alt="{{ listing.title }}">
+                                    {% endif %}
+                                {% endwith %}
+                                <div class="listing-card-badges">
+                                    {% if listing.deal_type == 'buy' %}
+                                        <span class="badge bg-success">Покупаю</span>
+                                        {% if listing.quantity %}<span class="badge bg-info text-dark">Куплю {{ listing.quantity }} шт.</span>{% endif %}
+                                    {% elif listing.deal_type == 'trade' %}
+                                        <span class="badge bg-info text-dark">Обмен</span>
+                                        {% if listing.in_stock %}
+                                            <span class="badge bg-success opacity-75">В наличии</span>
+                                            {% if listing.quantity %}<span class="badge bg-dark text-light">{{ listing.quantity }} шт.</span>{% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Нет в наличии</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Продаю</span>
+                                        {% if listing.barter_allowed %}
+                                            <span class="badge bg-secondary">Бартер</span>
+                                        {% endif %}
+                                        {% if listing.in_stock %}
+                                            <span class="badge bg-success opacity-75">В наличии</span>
+                                            {% if listing.quantity %}<span class="badge bg-dark text-light">{{ listing.quantity }} шт.</span>{% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Нет в наличии</span>
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if listing.deal_type != 'buy' and listing.deal_type != 'trade' and listing.barter_allowed %}
+                                        <span class="badge bg-secondary">Бартер</span>
+                                    {% endif %}
+                                </div>
+                                {% if listing.original_price and listing.price < listing.original_price and listing.discount_percent %}
+                                    <span class="listing-card-discount">‑{{ listing.discount_percent }}%</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body d-flex flex-column listing-card-body">
+                                <h5 class="card-title listing-card-title">{{ listing.title }}</h5>
+                                <p class="listing-card-category">{{ listing.category.name }}</p>
+                                {% if listing.description %}
+                                    <p class="listing-card-description">{{ listing.description|truncatechars:80 }}</p>
+                                {% endif %}
+                                <div class="listing-card-extra">
+                                    {% if listing.views %}
+                                        <span class="listing-card-views" title="Просмотры"><i class="bi bi-eye"></i> {{ listing.views }}</span>
+                                    {% endif %}
+                                    {% if listing.updated_at %}
+                                        <span class="listing-card-updated" title="{{ listing.updated_at|date:'d.m.Y' }}"><i class="bi bi-clock"></i> {{ listing.updated_at|date:"d.m.Y" }}</span>
+                                    {% endif %}
+                                    {% if listing.location %}
+                                        <span class="listing-card-location"><i class="bi bi-geo-alt"></i> {{ listing.location }}</span>
+                                    {% endif %}
+                                    {% if listing.source %}
+                                        <span class="listing-card-source"><i class="bi bi-box"></i> {{ listing.source }}</span>
+                                    {% endif %}
+                                    {% if listing.availability %}
+                                        <span class="listing-card-availability"><i class="bi bi-clock-history"></i> {{ listing.availability }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="listing-card-meta">
+                                    <span class="online-indicator {% if listing.seller_is_online %}online-indicator-online{% else %}online-indicator-offline{% endif %}" title="{% if listing.seller_is_online %}Онлайн{% else %}Оффлайн{% endif %}"></span>
+                                    <a href="{% url 'market:seller_detail' listing.seller.id %}" class="link-light text-decoration-underline" onclick="event.stopPropagation()">{{ listing.seller.username }}</a>
+                                    {% if listing.seller_avg_rating or listing.seller_reviews_count %}
+                                        <span class="ms-1">
+                                            {% if listing.seller_avg_rating %}★ {{ listing.seller_avg_rating|floatformat:1 }}{% endif %}
+                                            {% if listing.seller_reviews_count %}{% if listing.seller_avg_rating %} {% endif %}({{ listing.seller_reviews_count }} {{ listing.seller_reviews_count|ru_plural_reviews }}){% endif %}
+                                        </span>
+                                    {% endif %}
+                                    {% if listing.guarantor %}
+                                        <span class="guarantor-label ms-1">С гарантом</span>
+                                    {% endif %}
+                                    {% if listing.seller_listings_count and listing.seller_listings_count > 1 %}
+                                        <span class="listing-card-seller-more">У продавца ещё {{ listing.seller_listings_count|add:"-1" }} {{ listing.seller_listings_count|add:"-1"|ru_plural_listings }}</span>
+                                    {% endif %}
+                                    {% if listing.boost_priority == 0 %}
+                                        <a href="{% url 'market:premium_options' %}"
+                                           class="listing-card-premium-icon"
+                                           title="Премиум‑объявление · получить премиум"
+                                           onclick="event.stopPropagation();">
+                                            <img src="{% static 'market/images/premium-crown-16.png' %}"
+                                                 alt="Премиум"
+                                                 class="listing-card-premium-img">
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                <div class="listing-card-footer mt-auto">
+                                    <div class="listing-card-price" title="{{ listing.price_full }} {{ listing.currency }}">
+                                        {% if listing.original_price and listing.price < listing.original_price %}
+                                            <span class="text-success fw-bold">{% price_display listing.price_compact listing.currency %}</span>
+                                        {% else %}
+                                            <span class="fw-bold">{% price_display listing.price_compact listing.currency %}</span>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{% url 'market:listing_detail' listing.pk %}" class="btn btn-sm btn-starbaz w-100 listing-card-btn mt-1">Подробнее</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted">Объявлений не найдено.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/listing_list.css' %}">
+<script src="{% static 'market/js/listing_list.js' %}"></script>
+{% endblock %}

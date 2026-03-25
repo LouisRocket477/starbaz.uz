@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "market/_support_nav.html" %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card bg-dark border-0 shadow-sm mb-3 support-my-card">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-2">
+                    <div>
+                        <h1 class="h4 mb-1">Оспорить сделку</h1>
+                        <div class="small text-muted">
+                            Диалог #{{ conversation.id }} · Запрос #{{ purchase_request.id }}
+                            {% if listing %} · {{ listing.title|truncatechars:44 }}{% endif %}
+                        </div>
+                    </div>
+                    <a class="btn btn-outline-light btn-sm" href="{% url 'market:conversation_detail' conversation.id %}">
+                        <i class="bi bi-chat-dots me-1"></i> В диалог
+                    </a>
+                </div>
+
+                <div class="p-3 rounded-3 mb-3" style="background: rgba(2,6,23,0.25); border: 1px solid rgba(51,65,85,0.7);">
+                    <div class="small text-muted">Оппонент</div>
+                    <div class="fw-semibold">
+                        {{ other_user.username }} <span class="text-muted">(ID: {{ other_user.id }})</span>
+                    </div>
+                </div>
+
+                <form method="post" class="mb-1">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Тип проблемы</label>
+                        <select name="dispute_kind" class="form-select form-select-sm">
+                            <option value="not_received">Не выдали / не вернули</option>
+                            <option value="rules_violation">Сделка не по правилам</option>
+                            <option value="scam">Обман / мошенничество</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Опишите, что произошло</label>
+                        <textarea name="details"
+                                  rows="6"
+                                  class="form-control form-control-sm"
+                                  placeholder="Коротко и по фактам: что обещали, что сделали, что не выдали/не вернули, скриншоты/время и т.д."
+                                  required></textarea>
+                        <div class="form-text small text-muted">
+                            После отправки вы сразу попадёте в созданный тикет в разделе «Мои тикеты».
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-exclamation-triangle me-1"></i> Отправить спор
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/support_my.css' %}">
+{% endblock %}
+

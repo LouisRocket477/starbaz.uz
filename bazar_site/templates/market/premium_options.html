@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9 col-xl-8">
+        <div class="mb-4 text-center">
+            <h1 class="h4 mb-1">Приобретение премиума</h1>
+            <p class="small text-muted mb-1">
+                Премиум‑статус даёт заметное визуальное выделение профиля и объявлений, а также возможность поднимать публикации в топ.
+            </p>
+            <p class="small text-muted mb-0">
+                Вы также можете в любой момент отдельно поддержать проект добровольным пожертвованием — это помогает развивать BAZAR и добавлять новые функции.
+            </p>
+        </div>
+        <div class="row g-3 premium-options-grid">
+            <div class="col-md-4">
+                <form method="post" class="h-100">
+                    {% csrf_token %}
+                    <input type="hidden" name="package" value="month">
+                    <div class="card h-100 text-light bg-dark border-0 premium-card">
+                        <div class="card-body d-flex flex-column">
+                            <h2 class="h5 mb-1">1 месяц</h2>
+                            <div class="small text-muted mb-2">Стартовый пакет, чтобы спокойно попробовать премиум‑статус.</div>
+                            <div class="display-6 mb-1 fs-3">5&nbsp;поднятий</div>
+                            <div class="small text-muted mb-3">До 5 поднятий ваших объявлений в топ за срок действия пакета.</div>
+                            <ul class="small text-muted mb-3 ps-3">
+                                <li>Отдельный премиальный стиль аватарки и профиля в личном кабинете.</li>
+                                <li>Мягкий золотой «звёздный дождь» на странице продавца.</li>
+                                <li>Золотая корона и подсветка премиум‑объявлений.</li>
+                                <li>Возможность выводить выбранные объявления в первый слот.</li>
+                            </ul>
+                            <div class="mt-auto">
+                                <button type="submit" class="btn btn-outline-light btn-sm w-100">Выбрать пакет</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <form method="post" class="h-100">
+                    {% csrf_token %}
+                    <input type="hidden" name="package" value="quarter">
+                    <div class="card h-100 text-light bg-dark border-0 premium-card premium-card-highlight">
+                        <div class="card-body d-flex flex-column">
+                            <div class="badge bg-success mb-2 align-self-start">Выгоднее всего</div>
+                            <h2 class="h5 mb-1">3 месяца</h2>
+                            <div class="small text-muted mb-2">Оптимальный вариант с заметной экономией по сравнению с месяцем.</div>
+                            <div class="display-6 mb-1 fs-3">20&nbsp;поднятий</div>
+                            <div class="small text-muted mb-3">Все привилегии пакета «1 месяц» и до 20 поднятий объявлений в топ за 3 месяца.</div>
+                            <div class="mt-auto">
+                                <button type="submit" class="btn btn-starbaz btn-sm w-100">Выбрать пакет</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <form method="post" class="h-100">
+                    {% csrf_token %}
+                    <input type="hidden" name="package" value="year">
+                    <div class="card h-100 text-light bg-dark border-0 premium-card">
+                        <div class="card-body d-flex flex-column">
+                            <h2 class="h5 mb-1">12 месяцев</h2>
+                            <div class="small text-muted mb-2">Для тех, кто планирует торговать на BAZAR весь год.</div>
+                            <div class="display-6 mb-1 fs-3">250&nbsp;поднятий</div>
+                            <div class="small text-muted mb-3">Все привилегии пакетов «1 месяц» и «3 месяца» и до 250 поднятий объявлений в топ за год.</div>
+                            <div class="mt-auto">
+                                <button type="submit" class="btn btn-outline-light btn-sm w-100">Выбрать пакет</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <p class="small text-muted mt-3 text-start">
+            Оплата выбранного пакета рассматривается как добровольное пожертвование в поддержку проекта BAZAR и не
+            является оплатой услуг или товаром в юридическом смысле. Администрация вручную активирует премиум‑статус
+            и начислит соответствующие очки поднятия после получения подтверждения оплаты.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/premium.css' %}">
+<link rel="stylesheet" href="{% static 'market/css/support.css' %}">
+{% endblock %}
+
+

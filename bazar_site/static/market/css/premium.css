@@ -1,0 +1,34 @@
+.premium-card {
+    border-radius: 1rem;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.12), transparent 55%),
+        rgba(15, 23, 42, 0.96);
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 10px 28px rgba(0, 0, 0, 0.7);
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+}
+
+.premium-card-highlight {
+    border: 1px solid rgba(52, 211, 153, 0.9);
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 0 24px rgba(52, 211, 153, 0.85);
+}
+
+.premium-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 1),
+        0 14px 32px rgba(0, 0, 0, 0.8);
+}
+
+.premium-options-grid {
+    margin-top: 0.5rem;
+}
+

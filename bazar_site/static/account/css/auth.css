@@ -1,0 +1,52 @@
+.password-hint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.password-hint-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: #94a3b8;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 999px;
+    padding: 0.36rem 0.55rem;
+}
+
+.password-hint-chip i {
+    font-size: 0.78rem;
+    opacity: 0.85;
+}
+
+.password-hint-chip strong {
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.password-hint-chip.is-warning {
+    border-color: rgba(251, 191, 36, 0.55);
+    background: rgba(120, 53, 15, 0.32);
+    color: #fcd34d;
+}
+
+.password-hint-chip.is-warning strong {
+    color: #fde68a;
+}
+ .account-full-height {
+     min-height: 60vh;
+ }
+
+ .account-card-narrow {
+     max-width: 520px;
+     width: 100%;
+ }
+
+ .account-title-spaced {
+     letter-spacing: 0.15em;
+     text-transform: uppercase;
+ }
+

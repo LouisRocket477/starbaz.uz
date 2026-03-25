@@ -1,0 +1,71 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}{% if form.errors %}{% translate "Ошибка:" %} {% endif %}{{ block.super }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/admin_login.css' %}">
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login starbaz-admin-login{% endblock %}
+
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main" class="starbaz-admin-login-card">
+
+{% if form.errors and not form.non_field_errors %}
+  <p class="errornote">{% translate "Исправьте ошибки в форме ниже." %}</p>
+{% endif %}
+
+{% if form.non_field_errors %}
+  {% for error in form.non_field_errors %}
+    <p class="errornote">{{ error }}</p>
+  {% endfor %}
+{% endif %}
+
+  <div class="starbaz-admin-login-logo-wrap" aria-hidden="true">
+    <img
+      src="{% static 'market/images/logo.png' %}"
+      alt=""
+      class="starbaz-admin-login-logo"
+    >
+  </div>
+
+{% if user.is_authenticated %}
+  <p class="errornote">
+  {% blocktranslate trimmed with username=username %}
+  Вы вошли как {{ username }}, но у вас нет прав для этой страницы.
+  Войти под другой учётной записью?
+  {% endblocktranslate %}
+  </p>
+{% endif %}
+
+<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+  <div class="form-row">
+    {{ form.username.errors }}
+    {{ form.username.label_tag }} {{ form.username }}
+  </div>
+  <div class="form-row">
+    {{ form.password.errors }}
+    {{ form.password.label_tag }} {{ form.password }}
+    <input type="hidden" name="next" value="{{ next }}">
+  </div>
+  {% url 'admin_password_reset' as password_reset_url %}
+  {% if password_reset_url %}
+  <div class="password-reset-link">
+    <a href="{{ password_reset_url }}">{% translate "Забыли логин или пароль?" %}</a>
+  </div>
+  {% endif %}
+  <div class="submit-row">
+    <input type="submit" value="{% translate 'Войти' %}">
+  </div>
+</form>
+
+</div>
+{% endblock %}

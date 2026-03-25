@@ -1,0 +1,60 @@
+/* ===== Блок отзыва после сделки ===== */
+
+.conv-review-card {
+    background: rgba(56, 189, 248, 0.06);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 0.75rem;
+}
+
+.conv-review-prompt {
+    color: #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.conv-review-stars {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.conv-star-label {
+    cursor: pointer;
+    margin: 0;
+}
+
+.conv-review-stars input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.conv-star {
+    display: inline-block;
+    font-size: 1.25rem;
+    color: #475569;
+    transition: color 0.15s;
+}
+
+.conv-star-label:hover .conv-star,
+.conv-star-label:hover ~ .conv-star-label .conv-star {
+    color: #facc15;
+}
+
+.conv-review-stars input:checked ~ .conv-star-label .conv-star {
+    color: #facc15;
+}
+
+.conv-review-display .conv-review-text {
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+}
+
+.conv-review-reply {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    border-color: rgba(56, 189, 248, 0.5) !important;
+}

@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+{% load static market_extras %}
+
+{% block content %}
+<div class="row seller-detail-page g-4">
+    <div class="col-lg-4">
+        <div class="card seller-profile-card{% if profile.is_streamer %} seller-profile-card--streamer{% endif %}{% if profile.is_premium %} seller-profile-card--premium{% endif %}">
+            {% if profile.is_streamer %}
+                <div class="seller-sky-container seller-sky-container--streamer">
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                </div>
+            {% endif %}
+            {% if profile.is_premium %}
+                <div class="seller-sky-container seller-sky-container--premium">
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                    <div class="seller-star"></div>
+                </div>
+            {% endif %}
+            <div class="card-body text-center seller-profile-body">
+                <div class="seller-avatar-wrap mb-3">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}"
+                             alt="Аватар"
+                             class="seller-avatar js-avatar-zoom {% if profile.is_premium %}seller-avatar-premium{% endif %}"
+                             data-full-url="{{ profile.avatar.url }}">
+                    {% else %}
+                        <div class="seller-avatar seller-avatar-placeholder {% if profile.is_premium %}seller-avatar-premium{% endif %}">
+                            <span class="seller-avatar-initial">{{ seller.username|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <h1 class="seller-name mb-1 d-flex flex-column align-items-center gap-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="online-indicator {% if seller_is_online %}online-indicator-online{% else %}online-indicator-offline{% endif %}"
+                              title="{% if seller_is_online %}Онлайн{% else %}Оффлайн{% endif %}"></span>
+                            <span class="d-flex align-items-center gap-1">
+                                <span>{{ seller.username }}</span>
+                                {% if profile.is_premium %}
+                                    <span class="premium-crown-badge" title="Премиум‑статус">
+                                        <img src="{% static 'market/images/premium-crown-16.png' %}"
+                                             alt="Премиум"
+                                             class="premium-crown-img">
+                                    </span>
+                                {% endif %}
+                            </span>
+                    </div>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        {% if is_guarantor %}
+                            <span class="guarantor-label">Гарант</span>
+                        {% endif %}
+                        {% if profile.is_streamer %}
+                            <span class="streamer-badge-animated"><span>Стример</span></span>
+                        {% endif %}
+                        {% if profile.is_premium %}
+                            <span class="premium-badge-animated"><span>Премиум</span></span>
+                        {% endif %}
+                        <span class="seller-id-badge">ID: {{ seller.id }}</span>
+                    </div>
+                </h1>
+                {% if profile.game_nickname %}
+                    <div class="small text-muted mb-1">Ник в игре: <a href="{{ profile.game_nickname|rsi_citizen_url }}" target="_blank" rel="noopener" class="link-success text-decoration-underline">{{ profile.game_nickname }}</a></div>
+                {% endif %}
+                {% if profile.telegram or profile.discord or profile.steam or profile.youtube or profile.twitch or profile.instagram or profile.vk or profile.extra_link or profile.org_url %}
+                    <div class="mb-2 social-links-inline">
+                        {% if profile.org_url %}
+                            <a href="{{ profile.org_url }}" target="_blank" rel="noopener" class="social-icon" title="Организация RSI">
+                                {% if profile.org_logo_url %}
+                                    <img src="{{ profile.org_logo_url }}" alt="Организация RSI" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                {% else %}
+                                    <i class="bi bi-people-fill"></i>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                        {% if profile.telegram %}
+                            <a href="{{ profile.telegram }}" target="_blank" rel="noopener" class="social-icon" title="Telegram">
+                                <i class="bi bi-telegram"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.discord %}
+                            <a href="{{ profile.discord }}" target="_blank" rel="noopener" class="social-icon" title="Discord">
+                                <i class="bi bi-discord"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.steam %}
+                            <a href="{{ profile.steam }}" target="_blank" rel="noopener" class="social-icon" title="Steam">
+                                <i class="bi bi-steam"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.youtube %}
+                            <a href="{{ profile.youtube }}" target="_blank" rel="noopener" class="social-icon" title="YouTube">
+                                <i class="bi bi-youtube"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.twitch %}
+                            <a href="{{ profile.twitch }}" target="_blank" rel="noopener" class="social-icon" title="Twitch">
+                                <i class="bi bi-twitch"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.instagram %}
+                            <a href="{{ profile.instagram }}" target="_blank" rel="noopener" class="social-icon" title="Instagram">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.vk %}
+                            <a href="{{ profile.vk }}" target="_blank" rel="noopener" class="social-icon" title="VK">
+                                <i class="bi bi-vimeo"></i>
+                            </a>
+                        {% endif %}
+                        {% if profile.extra_link %}
+                            <a href="{{ profile.extra_link }}" target="_blank" rel="noopener" class="social-icon" title="Дополнительная ссылка">
+                                <i class="bi bi-globe2"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="mb-2 d-flex justify-content-center gap-2 flex-wrap">
+                    {% if avg_rating %}
+                        <span class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= avg_rating_rounded %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="small text-muted ms-2">{{ avg_rating|floatformat:1 }}/5</span>
+                    {% else %}
+                        <span class="small text-muted">Пока нет оценок</span>
+                    {% endif %}
+                    {% if seller_status %}
+                        <span class="status-badge {{ seller_status_class }}">{{ seller_status }}</span>
+                    {% endif %}
+                </div>
+                {% if profile.is_banned %}
+                    <p class="small text-danger mb-1 fw-semibold text-uppercase">
+                        АККАУНТ ПРОДАВЦА ЗАБЛОКИРОВАН
+                    </p>
+                {% endif %}
+                <div class="seller-stats small text-muted">
+                    <span>👍 {{ likes_count }}</span>
+                    <span class="mx-1">·</span>
+                    <span>👎 {{ dislikes_count }}</span>
+                    <span class="mx-1">·</span>
+                    <span>Заказов: {{ orders_count }}</span>
+                </div>
+                <div class="mt-3 d-flex flex-column gap-2">
+                    {% if request.user.is_authenticated and request.user != seller %}
+                        <a href="{% url 'market:conversation_with_seller' seller.id %}"
+                           class="btn btn-starbaz btn-sm w-100">
+                            Написать продавцу
+                        </a>
+                    {% endif %}
+                    {% if request.user == seller %}
+                        <a href="{% url 'market:profile' %}" class="btn btn-outline-light btn-sm w-100">
+                            Редактировать мой профиль
+                        </a>
+                        <a href="{% url 'market:support_new' %}?request_type=premium"
+                           class="btn btn-outline-warning btn-sm w-100">
+                            <i class="bi bi-life-preserver me-1"></i>
+                            Обращение в техническую поддержку
+                        </a>
+                    {% else %}
+                        <a href="{% url 'market:support_new' %}?request_type=seller&amp;seller={{ seller.username|urlencode }}&amp;seller_id={{ seller.id }}"
+                           class="btn btn-outline-warning btn-sm w-100">
+                            <i class="bi bi-life-preserver me-1"></i>
+                            Техническая поддержка по этому продавцу
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card seller-reviews-card mt-4">
+            <div class="card-body">
+                <h2 class="seller-reviews-title">Отзывы о продавце</h2>
+                {% for review in reviews %}
+                    <div class="review-item">
+                        <div class="review-item-header">
+                            <div class="review-item-avatar">
+                                {% if review.buyer.profile.avatar %}
+                                    <img src="{{ review.buyer.profile.avatar.url }}" alt="{{ review.buyer.username }}" class="rounded-circle">
+                                {% else %}
+                                    <div class="rounded-circle review-avatar-placeholder">
+                                        <span class="fw-bold small text-uppercase">{{ review.buyer.username|first }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="review-item-meta">
+                                <span class="review-item-author">{{ review.buyer.username }}</span>
+                                <span class="review-item-date">{{ review.created_at|date:"d.m.Y H:i" }}</span>
+                            </div>
+                        </div>
+                        <div class="review-item-rating">
+                            <span class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                            <span class="review-rating-text">{{ review.rating }}/5</span>
+                        </div>
+                        <div class="review-item-text">{{ review.text|linebreaks }}</div>
+                        {% if review.reply_text %}
+                            <div class="review-reply-block">
+                                <div class="review-reply-label">Ответ продавца:</div>
+                                <div class="review-reply-text">{{ review.reply_text|linebreaks }}</div>
+                            </div>
+                        {% elif request.user == seller %}
+                            <form method="post" class="mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reply">
+                                <input type="hidden" name="review_id" value="{{ review.id }}">
+                                <div class="mb-2">
+                                    <textarea name="reply_text" class="form-control form-control-sm" rows="2" placeholder="Ответить на отзыв..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-outline-light btn-sm">Ответить</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-muted small mb-0">Пока нет отзывов</p>
+                {% endfor %}
+                {% if has_more_reviews %}
+                    <div class="mt-2 text-center">
+                        <a href="{% url 'market:seller_reviews' seller.id %}" class="btn btn-outline-light btn-sm">
+                            Просмотреть все отзывы
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="seller-listings-section">
+            <h2 class="seller-section-title">
+                <i class="bi bi-grid-3x3-gap me-2"></i>Активные объявления продавца
+            </h2>
+            {% if listings_active_groups %}
+                {% for group in listings_active_groups %}
+                    <div class="seller-list-category-group">
+                        <div class="seller-list-parent">{{ group.parent_name }}</div>
+                        <div class="seller-listings-list">
+                            {% for item in group.items %}
+                                <a href="{% url 'market:listing_detail' item.pk %}" class="seller-list-row text-decoration-none text-reset">
+                                    <div class="seller-list-thumb">
+                                        {% with image=item.main_image %}
+                                            {% if image %}
+                                                <img src="{{ image.image.url }}" alt="{{ item.title }}">
+                                            {% else %}
+                                                <img src="{% static 'market/images/listing-default.png' %}" alt="{{ item.title }}">
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="seller-list-main">
+                                        <div class="seller-list-title-row">
+                                            <span class="seller-list-title">{{ item.title }}</span>
+                                            <span class="seller-list-category">{{ item.category.name }}</span>
+                                        </div>
+                                        <div class="seller-list-meta">
+                                            {% if item.deal_type == 'buy' %}
+                                                <span class="badge bg-success">Покупаю</span>
+                                            {% elif item.deal_type == 'trade' %}
+                                                <span class="badge bg-info text-dark">Обмен</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Продаю</span>
+                                            {% endif %}
+                                            {% if item.in_stock %}
+                                                <span class="badge bg-success opacity-75">В наличии{% if item.quantity %} · {{ item.quantity }} шт.{% endif %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Нет в наличии</span>
+                                            {% endif %}
+                                            {% if item.barter_allowed %}
+                                                <span class="badge bg-secondary">Бартер</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="seller-list-price">
+                                        <div class="seller-list-price-value">
+                                            {% if item.original_price and item.price < item.original_price %}
+                                                <span class="text-muted text-decoration-line-through small d-block">{% price_display item.original_price_full item.currency %}</span>
+                                                <span class="text-success fw-bold d-block">{% price_display item.price_full item.currency %}</span>
+                                            {% else %}
+                                                <span class="fw-bold d-block">{% price_display item.price_full item.currency %}</span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="btn btn-sm btn-outline-light seller-list-more-btn">Подробнее</span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="seller-empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p class="mb-0">Сейчас у продавца нет активных объявлений.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if listings_sold_groups %}
+            <div class="seller-listings-section seller-listings-section-sold">
+                <h2 class="seller-section-title">
+                    <i class="bi bi-check2-square me-2"></i>Завершённые объявления
+                </h2>
+                {% for group in listings_sold_groups %}
+                    <div class="seller-list-category-group">
+                        <div class="seller-list-parent">{{ group.parent_name }}</div>
+                        <div class="seller-listings-list">
+                            {% for item in group.items %}
+                                <a href="{% url 'market:listing_detail' item.pk %}" class="seller-list-row seller-list-row-sold text-decoration-none text-reset">
+                                    <div class="seller-list-thumb">
+                                        {% with image=item.main_image %}
+                                            {% if image %}
+                                                <img src="{{ image.image.url }}" alt="{{ item.title }}">
+                                            {% else %}
+                                                <img src="{% static 'market/images/listing-default.png' %}" alt="{{ item.title }}">
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="seller-list-main">
+                                        <div class="seller-list-title-row">
+                                            <span class="seller-list-title">{{ item.title }}</span>
+                                            <span class="seller-list-category">{{ item.category.name }}</span>
+                                        </div>
+                                        <div class="seller-list-meta">
+                                            {% if item.deal_type == 'buy' %}
+                                                <span class="badge bg-success">Покупаю</span>
+                                            {% elif item.deal_type == 'trade' %}
+                                                <span class="badge bg-info text-dark">Обмен</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Продаю</span>
+                                            {% endif %}
+                                            {% if item.barter_allowed %}
+                                                <span class="badge bg-secondary">Бартер</span>
+                                            {% endif %}
+                                            <span class="badge bg-secondary">Завершено</span>
+                                        </div>
+                                    </div>
+                                    <div class="seller-list-price">
+                                        <div class="seller-list-price-value">
+                                            <span class="fw-bold d-block">{% price_display item.price_full item.currency %}</span>
+                                        </div>
+                                        <span class="btn btn-sm btn-outline-light seller-list-more-btn">Подробнее</span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/listing_list.css' %}">
+<link rel="stylesheet" href="{% static 'market/css/seller_detail.css' %}">
+<script src="{% static 'market/js/seller_detail.js' %}"></script>
+{% endblock %}

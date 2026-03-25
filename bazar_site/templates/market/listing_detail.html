@@ -1,0 +1,702 @@
+{% extends "base.html" %}
+{% load static price_filters market_extras %}
+
+{% block content %}
+{% if seller_profile.is_streamer or seller_profile.is_premium %}
+    <canvas id="listing-stars-bg" class="listing-stars-bg"></canvas>
+{% endif %}
+<div class="listing-detail-page-wrapper">
+<div class="row listing-detail-page">
+    <div class="col-lg-5 order-1 order-lg-1">
+        <div class="card mb-3 listing-detail-image-card">
+            {% with main_image=listing.main_image %}
+                {% if main_image %}
+                    <div class="listing-main-image-wrapper">
+                        <img src="{{ main_image.image.url }}"
+                             class="listing-main-image js-listing-main-image"
+                             alt="{{ listing.title }}"
+                             data-full-url="{{ main_image.image.url }}">
+                    </div>
+                {% else %}
+                    <div class="listing-main-image-wrapper">
+                        <img src="{% static 'market/images/listing-default.png' %}" class="listing-main-image" alt="{{ listing.title }}">
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+        {% if listing.images.all|length > 1 or listing.videos.all %}
+            <div class="card mb-3 listing-detail-image-card">
+                <div class="card-body listing-detail-body p-3">
+                    <h2 class="h6 mb-2 listing-gallery-title">Галерея</h2>
+                    {% if listing.images.all %}
+                        <div class="listing-gallery-thumbs d-flex flex-wrap gap-2 mb-2">
+                            {% for image in listing.images.all %}
+                                <img src="{{ image.image.url }}"
+                                     alt=""
+                                     class="listing-gallery-thumb js-listing-thumb {% if image.is_main %}listing-gallery-thumb-active{% endif %}"
+                                     data-full-url="{{ image.image.url }}">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if listing.videos.all %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for video in listing.videos.all %}
+                                <video src="{{ video.file.url }}" controls style="width: 160px; height: 90px; border-radius: 0.5rem; background:#020617;"></video>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if show_review_section %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="h6 mb-3">Ваш отзыв о продавце</h2>
+                    {% if user_review %}
+                        <div class="mb-2">
+                            <span class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= user_review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                            <span class="small text-muted ms-2">{{ user_review.rating }}/5</span>
+                        </div>
+                        <p class="small mb-0">{{ user_review.text|linebreaks }}</p>
+                    {% else %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="review">
+                            <div class="mb-2 small">Оценка:</div>
+                            <div class="mb-2 rating-stars">
+                                {% for i in "12345" %}
+                                    <input type="radio"
+                                           id="rating_{{ forloop.counter }}"
+                                           name="rating"
+                                           value="{{ forloop.counter }}"
+                                           class="d-none"
+                                           required>
+                                    <label for="rating_{{ forloop.counter }}"
+                                           class="star"
+                                           data-value="{{ forloop.counter }}">★</label>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small">Отзыв</label>
+                                <textarea name="text" class="form-control" rows="6" required placeholder="Опишите ваш опыт сделки с продавцом"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-starbaz btn-sm w-100">Оставить отзыв</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Отзывы о продавце</h2>
+                {% if reviews %}
+                    {% for review in reviews %}
+                        <div class="review-item">
+                            <div class="review-item-header">
+                                <div class="review-item-avatar">
+                                    {% if review.buyer.profile.avatar %}
+                                        <img src="{{ review.buyer.profile.avatar.url }}" alt="{{ review.buyer.username }}" class="rounded-circle">
+                                    {% else %}
+                                        <div class="rounded-circle review-avatar-placeholder">
+                                            <span class="fw-bold small text-uppercase">{{ review.buyer.username|first }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="review-item-meta">
+                                    <span class="review-item-author">{{ review.buyer.username }}</span>
+                                    <span class="review-item-date">{{ review.created_at|date:"d.m.Y H:i" }}</span>
+                                </div>
+                            </div>
+                            <div class="review-item-rating">
+                                <span class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                    {% endfor %}
+                                </span>
+                                <span class="review-rating-text">{{ review.rating }}/5</span>
+                            </div>
+                            <div class="review-item-text">{{ review.text|linebreaks }}</div>
+                            {% if review.reply_text %}
+                                <div class="review-reply-block">
+                                    <div class="review-reply-label">Ответ продавца:</div>
+                                    <div class="review-reply-text">{{ review.reply_text|linebreaks }}</div>
+                                </div>
+                            {% elif request.user == listing.seller %}
+                                <form method="post" class="mt-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reply">
+                                    <input type="hidden" name="review_id" value="{{ review.id }}">
+                                    <div class="mb-2">
+                                        <textarea name="reply_text" class="form-control form-control-sm" rows="4" placeholder="Ответить на отзыв..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-outline-light btn-sm">Ответить</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted small mb-0">Комментариев пока нет.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7 order-2 order-lg-2">
+        <div class="listing-detail-seller-sky{% if seller_profile.is_streamer %} listing-detail-seller-sky--streamer{% endif %}{% if seller_profile.is_premium %} listing-detail-seller-sky--premium{% endif %}">
+        <div class="card mb-3 listing-detail-sidebar">
+            <div class="card-body listing-detail-sidebar-body">
+                <div class="listing-detail-info-top mb-3">
+                    <div class="listing-detail-header mb-2">
+                        <span class="listing-detail-category">{{ listing.category.name }}</span>
+                        <div class="listing-detail-badges">
+                            {% if listing.deal_type == 'buy' %}
+                                <span class="badge listing-badge listing-badge-buy">Покупаю</span>
+                            {% elif listing.deal_type == 'trade' %}
+                                <span class="badge listing-badge listing-badge-trade">Обмен</span>
+                            {% else %}
+                                <span class="badge listing-badge listing-badge-sell">Продаю</span>
+                            {% endif %}
+                            {% if listing.barter_allowed %}
+                                <span class="badge listing-badge listing-badge-barter">Бартер</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h1 class="listing-detail-title mb-2">{{ listing.title }}</h1>
+                    <div class="listing-detail-price-block mb-2" title="{{ listing.price_compact }} {{ listing.currency }}">
+                        {% if listing.original_price and listing.price < listing.original_price %}
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <div class="listing-price-row">
+                                <span class="listing-price-label d-block small text-muted mb-1">Рыночная цена</span>
+                                <span class="listing-price-value text-decoration-line-through text-muted">{% price_display listing.original_price_full listing.currency %}</span>
+                            </div>
+                            <div class="listing-price-row">
+                                <span class="listing-price-label d-block small text-muted mb-1">Цена со скидкой</span>
+                                <span class="listing-price-value listing-price-green">{% price_display listing.price_full listing.currency %}</span>
+                                {% if listing.discount_percent %}
+                                <span class="listing-discount-badge ms-2">‑{{ listing.discount_percent }}%</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="listing-price-row">
+                            <span class="listing-price-label d-block small text-muted mb-1">Цена за единицу товара</span>
+                            <span class="listing-price-value">{% price_display listing.price_full listing.currency %}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if listing.barter_allowed %}
+                        <div class="listing-detail-barter mb-2">
+                            <span class="listing-barter-badge"><i class="bi bi-arrow-left-right me-1"></i>Готов к обмену</span>
+                            {% if listing.barter_for.all or listing.barter_custom %}
+                                <div class="listing-barter-items">
+                                    {% for cat in listing.barter_for.all %}
+                                        <span class="listing-barter-tag">{{ cat.name }}</span>
+                                    {% endfor %}
+                                    {% for item in listing.barter_custom|split_by_comma %}
+                                        <span class="listing-barter-tag listing-barter-custom">{{ item }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                <div class="listing-detail-description mb-3">
+                    {{ listing.description|linebreaks }}
+                </div>
+
+                <div class="d-flex align-items-center mb-2">
+                    <div class="me-2">
+                        {% if seller_profile.avatar %}
+                            <img src="{{ seller_profile.avatar.url }}" alt="Аватар" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <span class="fw-bold small">{{ listing.seller.username|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="mb-0">
+                            <span class="online-indicator {% if seller_is_online %}online-indicator-online{% else %}online-indicator-offline{% endif %}" title="{% if seller_is_online %}Онлайн{% else %}Оффлайн{% endif %}"></span>
+                            <a href="{% url 'market:seller_detail' listing.seller.id %}" class="link-success text-decoration-underline fw-semibold">{{ listing.seller.username }}</a>
+                            {% if avg_rating %}
+                                <span class="text-warning ms-1">{% for i in "12345" %}{% if forloop.counter <= avg_rating_rounded %}★{% else %}☆{% endif %}{% endfor %}</span>
+                                <span class="small text-muted">{{ avg_rating|floatformat:2 }} ({{ reviews|length }} {{ reviews|length|ru_plural_reviews }})</span>
+                            {% endif %}
+                        </p>
+                        {% if seller_profile.game_nickname %}
+                            <p class="small text-muted mb-1 mt-0">Ник в игре: <a href="{{ seller_profile.game_nickname|rsi_citizen_url }}" target="_blank" rel="noopener" class="link-success text-decoration-underline">{{ seller_profile.game_nickname }}</a></p>
+                        {% endif %}
+                        {% if seller_status %}
+                            <span class="status-badge {{ seller_status_class }}">{{ seller_status }}</span>
+                        {% endif %}
+                        {% if listing.guarantor %}
+                            <span class="guarantor-label ms-1"><i class="bi bi-shield-check me-1"></i>С гарантом</span>
+                        {% elif seller_profile.is_guarantor %}
+                            <span class="guarantor-label ms-1">Гарант</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="small text-muted mb-2">👍 {{ likes_count }} · 👎 {{ dislikes_count }}</p>
+
+                <hr class="my-1 opacity-25">
+                <div class="listing-info-grid">
+                    {% if seller_profile.operator %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-people"></i>
+                        <span class="listing-info-label">Оператор</span>
+                        <a href="{% url 'market:seller_detail' listing.seller.id %}" class="link-success text-decoration-underline listing-info-value">{{ seller_profile.operator }}</a>
+                    </div>
+                    {% endif %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-exclamation-circle text-warning"></i>
+                        <span class="listing-info-label">Активность</span>
+                        <span class="listing-info-value">{{ seller_profile.last_seen|time_ago_ru|default:"никогда" }}</span>
+                    </div>
+                    <div class="listing-info-row">
+                        <i class="bi bi-star"></i>
+                        <span class="listing-info-label">На сайте</span>
+                        <span class="listing-info-value">{{ listing.seller.date_joined|member_since }}</span>
+                    </div>
+                    {% if listing.source %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-download"></i>
+                        <span class="listing-info-label">Источник</span>
+                        <span class="listing-info-value">{{ listing.source }}</span>
+                    </div>
+                    {% endif %}
+                    {% if listing.location %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-geo-alt"></i>
+                        <span class="listing-info-label">Место</span>
+                        <span class="listing-info-value">{{ listing.location }}</span>
+                    </div>
+                    {% endif %}
+                    {% if listing.star_system %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-gear"></i>
+                        <span class="listing-info-label">Система</span>
+                        <span class="listing-info-value">{{ listing.star_system }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-eye"></i>
+                        <span class="listing-info-label">Просмотры</span>
+                        <span class="listing-info-value">{{ listing.views }}</span>
+                    </div>
+                    <div class="listing-info-row">
+                        <span class="listing-info-icon" aria-hidden="true">🤝</span>
+                        <span class="listing-info-label">Сделок</span>
+                        <span class="listing-info-value">{{ orders_count }} {{ orders_count|ru_plural_deals }}</span>
+                    </div>
+                    <div class="listing-info-row">
+                        <i class="bi bi-box-seam"></i>
+                        <span class="listing-info-label">Товар</span>
+                        <span class="listing-info-value {% if listing.deal_type == 'buy' %}text-info{% elif listing.in_stock %}text-success{% else %}text-warning{% endif %}">
+                            {% if listing.deal_type == 'buy' %}
+                                {% if listing.quantity %}Куплю {{ listing.quantity }} шт.{% else %}Покупка{% endif %}
+                            {% elif listing.in_stock %}
+                                В наличии{% if listing.quantity %} ({{ listing.quantity }} шт.){% endif %}
+                            {% else %}
+                                Нет в наличии
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if listing.availability %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-calendar-check"></i>
+                        <span class="listing-info-label">Наличие</span>
+                        <span class="listing-info-value">{{ listing.availability }}</span>
+                    </div>
+                    {% endif %}
+                    {% if seller_profile.working_hours %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-clock"></i>
+                        <span class="listing-info-label">Время работы</span>
+                        <span class="listing-info-value">{{ seller_profile.working_hours }}</span>
+                    </div>
+                    {% endif %}
+                    {% if seller_profile.preferred_language %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-file-text"></i>
+                        <span class="listing-info-label">Язык</span>
+                        <span class="listing-info-value">{{ seller_profile.preferred_language }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="listing-info-row">
+                        <i class="bi bi-clock"></i>
+                        <span class="listing-info-label">Обновлено</span>
+                        <span class="listing-info-value">{{ listing.updated_at|date:"d.m.Y" }}</span>
+                    </div>
+                </div>
+
+                <p class="text-muted mb-1 mt-1 listing-created-date">Объявление создано {{ listing.created_at|date:"d.m.Y H:i" }}</p>
+
+                <div class="card listing-activity-chart-card mt-2 mb-3">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                            <h2 class="h6 mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-graph-up-arrow text-info"></i>
+                                Активность по товару
+                            </h2>
+                            <a href="{% url 'market:listing_list' %}?q={{ listing.title|urlencode }}" class="listing-chart-link small">Поиск на площадке</a>
+                        </div>
+                        <div class="listing-chart-legend d-flex justify-content-center gap-3 mb-1 small flex-wrap">
+                            <span class="d-flex align-items-center gap-1"><span class="listing-chart-legend-bar"></span>Заявки</span>
+                            <span class="d-flex align-items-center gap-1"><span class="listing-chart-legend-sold"></span>Продано</span>
+                            <span class="d-flex align-items-center gap-1"><span class="listing-chart-legend-line"></span>Цена ({{ listing_currency }})</span>
+                        </div>
+                        <p class="small text-muted mb-2 text-center">По всем продавцам с таким товаром в магазине</p>
+                        <div class="listing-chart-wrap">
+                            <canvas id="listingActivityChart" height="180"></canvas>
+                        </div>
+                        <input type="hidden" id="listingChartLabels" value="{{ chart_labels|join:',' }}">
+                        <input type="hidden" id="listingChartOrders" value="{{ chart_orders|join:',' }}">
+                        <input type="hidden" id="listingChartSold" value="{{ chart_sold|join:',' }}">
+                        <input type="hidden" id="listingChartPrices" value="{{ chart_prices|join:',' }}">
+                        <input type="hidden" id="listingChartPricesMin" value="{{ chart_prices_min|join:',' }}">
+                        <input type="hidden" id="listingChartPricesMax" value="{{ chart_prices_max|join:',' }}">
+                    </div>
+                </div>
+
+                {% if request.user == listing.seller %}
+                    {% if listing.status != 'sold' %}
+                        <a href="{% url 'market:listing_edit' listing.pk %}" class="btn btn-starbaz w-100 mb-1">
+                            Редактировать объявление
+                        </a>
+                        <form method="post" class="mb-1">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="close">
+                            <button type="submit" class="btn btn-outline-light w-100">
+                                Закрыть заказ (завершён)
+                            </button>
+                        </form>
+                    {% else %}
+                        {% if listing.deal_type != 'buy' %}
+                        <div class="card mb-2 listing-republish-card">
+                            <div class="card-body py-2">
+                                <p class="small mb-2 text-muted">Объявление снято с продажи. Можно отменить и опубликовать снова.</p>
+                                <form method="post" class="d-flex align-items-center gap-2 flex-wrap">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="republish">
+                                    {% if listing.quantity is not None %}
+                                    <label class="d-flex align-items-center gap-1 mb-0 small">
+                                        <span>Кол-во:</span>
+                                        <input type="number" name="quantity" min="1" value="1" class="form-control form-control-sm listing-qty-input" required>
+                                    </label>
+                                    {% endif %}
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>Опубликовать снова
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    {% if not listing.in_stock and listing.status == 'active' and listing.deal_type != 'buy' %}
+                        <div class="card mb-2 listing-republish-card">
+                            <div class="card-body py-2">
+                                <p class="small mb-2 text-muted">Товар закончился. Укажите количество и снова выставьте на продажу.</p>
+                                <form method="post" class="d-flex align-items-center gap-2 flex-wrap">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="republish">
+                                    <label class="d-flex align-items-center gap-1 mb-0 small">
+                                        <span>Кол-во:</span>
+                                        <input type="number" name="quantity" min="1" value="1" class="form-control form-control-sm listing-qty-input" required>
+                                    </label>
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="bi bi-box-seam me-1"></i>Снова в продаже
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'market:listing_delete' listing.pk %}" class="btn btn-danger w-100 mb-1">
+                        Удалить объявление
+                    </a>
+                    {% if listing.status == 'sold' %}
+                        <p class="text-muted small mb-1">
+                            Статус:
+                            <span class="badge bg-secondary ms-1">Завершён</span>
+                            Объявление скрыто с витрины.
+                        </p>
+                    {% elif listing.status == 'active' %}
+                        <p class="text-muted small mb-1">
+                            Статус:
+                            <span class="badge bg-success ms-1">Активно</span>
+                        </p>
+                    {% else %}
+                        <p class="text-muted small mb-1">Это ваше объявление.</p>
+                    {% endif %}
+
+                    {% if seller_conversations %}
+                        <hr class="my-2 opacity-25">
+                        <p class="small text-muted mb-1">Чаты с покупателями по этому объявлению</p>
+                        {% if listing.quantity and listing.in_stock %}
+                        <p class="small text-success mb-2">
+                            <i class="bi bi-info-circle me-1"></i>В чате можно завершить сделку с указанием количества — остаток обновится автоматически. Покупатель сможет заказать снова, если товар в наличии.
+                        </p>
+                        {% endif %}
+                        <div class="list-group small">
+                            {% for convo in seller_conversations %}
+                                <a href="{% url 'market:conversation_detail' convo.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <span>{{ convo.buyer.username }}</span>
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ convo.unread_count }}
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% elif request.user.is_authenticated and conversation %}
+                    <div class="listing-chat-wrapper">
+                        <div class="listing-chat-row">
+                            <div class="listing-chat-block">
+                                <div class="listing-chat-header">
+                                    <div class="listing-chat-header-left d-flex align-items-center gap-2">
+                                        <div class="listing-chat-seller-avatar">
+                                            {% if seller_profile.avatar %}
+                                                <img src="{{ seller_profile.avatar.url }}" alt="{{ listing.seller.username }}">
+                                            {% else %}
+                                                <span>{{ listing.seller.username|first|upper }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h3 class="listing-chat-title">Личный чат с продавцом</h3>
+                                            <a href="{% url 'market:seller_detail' listing.seller.id %}" class="listing-chat-seller-link" onclick="event.stopPropagation()">
+                                                <span class="online-indicator {% if seller_is_online %}online-indicator-online{% else %}online-indicator-offline{% endif %}"></span>
+                                                {{ listing.seller.username }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <span class="listing-chat-badge">Чат</span>
+                                </div>
+                                <div id="listing-chat-messages" class="listing-chat-messages mb-2">
+                                {% for message in messages %}
+                                    <div class="listing-chat-msg {% if message.sender == request.user %}listing-chat-msg-me{% else %}listing-chat-msg-them{% endif %}">
+                                        {% ifchanged message.sender %}
+                                            <div class="listing-chat-msg-head">
+                                                {% if message.sender == request.user %}
+                                                    {% if user_profile.avatar %}
+                                                        <img src="{{ user_profile.avatar.url }}" alt="" class="listing-chat-avatar">
+                                                    {% else %}
+                                                        <span class="listing-chat-avatar listing-chat-avatar-placeholder">{{ request.user.username|first|upper }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    {% if seller_profile.avatar %}
+                                                        <img src="{{ seller_profile.avatar.url }}" alt="" class="listing-chat-avatar">
+                                                    {% else %}
+                                                        <span class="listing-chat-avatar listing-chat-avatar-placeholder">{{ listing.seller.username|first|upper }}</span>
+                                                    {% endif %}
+                                                {% endif %}
+                                                <span class="listing-chat-msg-meta">{{ message.sender.username }} · {{ message.created_at|date:"d.m.Y H:i" }}</span>
+                                            </div>
+                                        {% endifchanged %}
+                                        {% if message.content %}
+                                            {% with deal_data=message.content|parse_deal_message purchase_data=message.content|parse_purchase_message sell_offer_data=message.content|parse_sell_offer_message %}
+                                                {% if deal_data %}
+                                                    <div class="listing-chat-bubble listing-chat-bubble-trade listing-chat-bubble-deal">
+                                                        <div class="listing-chat-deal-header">
+                                                            <i class="bi bi-check-circle-fill listing-chat-deal-icon me-1"></i>
+                                                            Сделка завершена
+                                                        </div>
+                                                        <div class="listing-chat-deal-line">
+                                                            {% if message.sender == request.user %}
+                                                                Вы купили {{ deal_data.qty }} шт. на сумму
+                                                            {% else %}
+                                                                Покупатель {{ deal_data.buyer_name }} купил {{ deal_data.qty }} шт. на сумму
+                                                            {% endif %}
+                                                            <span class="listing-chat-deal-sum">{% price_display deal_data.total deal_data.currency %}</span>
+                                                        </div>
+                                                        <div class="listing-chat-deal-remaining">
+                                                            Остаток в объявлении: <strong>{{ deal_data.remaining }} шт.</strong>
+                                                        </div>
+                                                    </div>
+                                                {% elif purchase_data %}
+                                                    <div class="listing-chat-bubble listing-chat-bubble-trade listing-chat-bubble-purchase">
+                                                        <div class="listing-chat-deal-header">
+                                                            <i class="bi bi-cart-fill listing-chat-deal-icon me-1"></i>
+                                                            Заявка на покупку
+                                                        </div>
+                                                        <div class="listing-chat-deal-line">
+                                                            {% if message.sender == request.user %}
+                                                                Вы хотите купить {{ purchase_data.qty }} шт. на сумму
+                                                            {% else %}
+                                                                Покупатель {% if purchase_data.buyer_name %}{{ purchase_data.buyer_name }}{% else %}{{ message.sender.username }}{% endif %} хочет купить {{ purchase_data.qty }} шт. на сумму
+                                                            {% endif %}
+                                                            <span class="listing-chat-deal-sum">{% price_display purchase_data.total purchase_data.currency %}</span>
+                                                        </div>
+                                                        <div class="listing-chat-deal-sub">
+                                                            Цена за 1 шт.: {% price_display purchase_data.unit_price purchase_data.currency %}
+                                                        </div>
+                                                    </div>
+                                                {% elif sell_offer_data %}
+                                                    <div class="listing-chat-bubble listing-chat-bubble-trade listing-chat-bubble-sell">
+                                                        <div class="listing-chat-deal-header">
+                                                            <i class="bi bi-tag-fill listing-chat-deal-icon me-1"></i>
+                                                            Предложение своего товара
+                                                        </div>
+                                                        <div class="listing-chat-deal-line">
+                                                            {% if message.sender == request.user %}
+                                                                Вы предлагаете товар
+                                                            {% else %}
+                                                                {{ sell_offer_data.seller_name }} предлагает товар
+                                                            {% endif %}
+                                                            <a href="{% url 'market:listing_detail' sell_offer_data.listing_pk %}" class="listing-chat-deal-link">
+                                                                {{ sell_offer_data.listing_title|truncatechars:40 }}
+                                                            </a>
+                                                        </div>
+                                                        <div class="listing-chat-deal-sub">
+                                                            Цена: <span class="listing-chat-deal-sum">{% price_display sell_offer_data.price sell_offer_data.currency %}</span>
+                                                        </div>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="listing-chat-bubble">{{ message.content|linebreaksbr }}</div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            <div class="listing-chat-bubble">{{ message.content|linebreaksbr }}</div>
+                                        {% endif %}
+                                    </div>
+                                {% empty %}
+                                    <div class="listing-chat-empty">
+                                        <i class="bi bi-chat-text"></i>
+                                        <p>Сообщений пока нет</p>
+                                        <span>Напишите продавцу первым</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if listing.status != 'sold' and listing.barter_allowed or listing.status != 'sold' and listing.quantity and listing.quantity > 0 and listing.in_stock or listing.status != 'sold' and listing.deal_type == 'buy' and viewer_sell_listings %}
+                            <div class="listing-chat-actions-block mt-2 mb-2">
+                                {% if listing.deal_type == 'buy' and viewer_sell_listings and conversation %}
+                                <a href="{% url 'market:conversation_detail' conversation.pk %}"
+                                   class="btn btn-starbaz btn-sm">
+                                    <i class="bi bi-cash-stack me-1"></i>Продать
+                                </a>
+                                {% elif listing.barter_allowed and listing.in_stock and not listing.quantity and not listing.price %}
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="request_barter">
+                                    <button type="submit" class="btn btn-starbaz btn-sm">
+                                        <i class="bi bi-arrow-left-right me-1"></i>Хочу обмен
+                                    </button>
+                                </form>
+                                {% elif listing.quantity and listing.quantity > 0 and listing.in_stock or listing.barter_allowed and listing.in_stock and listing.deal_type != 'buy' %}
+                                {% if buyer_has_pending_purchase %}
+                                <div class="listing-chat-pending small text-muted">
+                                    <i class="bi bi-clock-fill me-1"></i>Заявка на покупку отправлена, ожидайте подтверждения продавца
+                                </div>
+                                {% else %}
+                                {% if listing.barter_allowed %}
+                                <form id="listing-chat-barter-form" method="post" class="d-none">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="request_barter">
+                                </form>
+                                {% endif %}
+                                <div class="listing-chat-buy-block" data-unit-price="{{ listing.price }}" data-currency="{{ listing.currency }}">
+                                    <form method="post" action="{% url 'market:conversation_request_purchase' conversation.pk %}" class="listing-chat-buy-form d-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2">
+                                        {% csrf_token %}
+                                        {% if listing.quantity and listing.quantity > 0 %}
+                                        <div class="listing-chat-buy-info small text-muted">В наличии {{ listing.quantity }} шт. · За 1 шт.: {% price_display listing.price_full listing.currency %}</div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <label class="d-flex align-items-center gap-1 mb-0">
+                                                <span class="small">Кол-во:</span>
+                                                <input type="number" name="quantity" id="listing-chat-buy-qty" min="1" max="{{ listing.quantity }}" value="1" class="form-control form-control-sm listing-chat-qty-input" style="width: 4.5rem;"
+                                                   oninvalid="this.setCustomValidity('Укажите не более ' + this.getAttribute('max') + ' шт.')"
+                                                   oninput="this.setCustomValidity('')">
+                                            </label>
+                                            <span class="small fw-bold text-success listing-chat-total-display"></span>
+                                            <button type="submit" class="btn btn-starbaz btn-sm">
+                                                <i class="bi bi-cart-check me-1"></i>Купить
+                                            </button>
+                                            {% if listing.barter_allowed %}
+                                            <span class="listing-chat-actions-sep small text-muted">или</span>
+                                            <button type="submit" form="listing-chat-barter-form" class="btn btn-starbaz btn-sm">
+                                                <i class="bi bi-arrow-left-right me-1"></i>Хочу обмен
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                        {% else %}
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <span class="small text-muted">За {% price_display listing.price_full listing.currency %}</span>
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="submit" class="btn btn-starbaz btn-sm">
+                                                <i class="bi bi-cart-check me-1"></i>Купить
+                                            </button>
+                                            {% if listing.barter_allowed %}
+                                            <span class="listing-chat-actions-sep small text-muted">или</span>
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="request_barter">
+                                                <button type="submit" class="btn btn-starbaz btn-sm">
+                                                    <i class="bi bi-arrow-left-right me-1"></i>Хочу обмен
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <form id="listing-chat-form" method="post" class="listing-chat-form mb-0" data-send-url="{% url 'market:conversation_send_message' conversation.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="chat">
+                                <div class="listing-chat-form-row">
+                                    <textarea name="content" id="listing-chat-input" class="listing-chat-input" rows="2" placeholder="Написать сообщение..." required></textarea>
+                                    <a href="{% url 'market:conversation_detail' conversation.pk %}" class="listing-chat-full-btn" title="Полный чат с вложениями">
+                                        <i class="bi bi-chat-dots"></i>
+                                        <span>Полный чат</span>
+                                    </a>
+                                </div>
+                                <small class="listing-chat-hint">Enter — отправить</small>
+                            </form>
+                        </div>
+                    </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="btn btn-starbaz w-100 mb-2">
+                        Войти, чтобы написать продавцу
+                    </a>
+                {% endif %}
+
+                {% if is_user_guarantor %}
+                    <div class="listing-guarantor-block mt-2 pt-2 border-top border-secondary">
+                        {% if listing.guarantor == request.user %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="unset_guarantor">
+                                <button type="submit" class="btn btn-outline-warning btn-sm">Снять гаранта</button>
+                            </form>
+                        {% elif not listing.guarantor %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="set_guarantor">
+                                <button type="submit" class="btn btn-warning btn-sm">Гарант</button>
+                            </form>
+                        {% else %}
+                            <span class="small text-muted">Гарант: <a href="{% url 'market:seller_detail' listing.guarantor.id %}" class="link-light">{{ listing.guarantor.username }}</a></span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/listing_detail.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'market/js/listing_detail.js' %}"></script>
+<script src="{% static 'market/js/listing_stars_bg.js' %}"></script>
+{% endblock %}
+

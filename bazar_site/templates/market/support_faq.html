@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "market/_support_nav.html" %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card bg-dark border-0 shadow-sm">
+            <div class="card-body">
+                <h1 class="h4 mb-3">Вопросы по сайту</h1>
+                {% if faqs %}
+                    <div class="accordion accordion-flush mb-4" id="supportFaqAccordion">
+                        {% for item in faqs %}
+                            <div class="accordion-item bg-transparent border-secondary">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-transparent text-light small" type="button" data-bs-toggle="collapse" data-bs-target="#faqItem{{ forloop.counter }}" aria-expanded="false" aria-controls="faqItem{{ forloop.counter }}">
+                                        {{ item.question }}
+                                    </button>
+                                </h2>
+                                <div id="faqItem{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#supportFaqAccordion">
+                                    <div class="accordion-body small text-muted">
+                                        {{ item.answer|linebreaks }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="small text-muted mb-3">
+                        Список вопросов пока пуст. Добавьте записи в разделе «FAQ: вопросы» в админке.
+                    </p>
+                {% endif %}
+
+                <h2 class="h6 mb-2">Какой тип обращения выбрать?</h2>
+                <div class="accordion accordion-flush" id="supportFaqGuideAccordion">
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-light small" type="button" data-bs-toggle="collapse" data-bs-target="#faqGuideSeller" aria-expanded="false" aria-controls="faqGuideSeller">
+                                Хочу пожаловаться на продавца или сделку — что выбрать?
+                            </button>
+                        </h2>
+                        <div id="faqGuideSeller" class="accordion-collapse collapse" data-bs-parent="#supportFaqGuideAccordion">
+                            <div class="accordion-body small text-muted">
+                                Выберите тип обращения <strong>«Вопрос по продавцу / сделке»</strong>. Укажите ссылку на продавца и объявление, опишите ситуацию и, по возможности, приложите скриншоты переписки или оплаты.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-light small" type="button" data-bs-toggle="collapse" data-bs-target="#faqGuideListing" aria-expanded="false" aria-controls="faqGuideListing">
+                                В объявлении ошибка или обман — куда писать?
+                            </button>
+                        </h2>
+                        <div id="faqGuideListing" class="accordion-collapse collapse" data-bs-parent="#supportFaqGuideAccordion">
+                            <div class="accordion-body small text-muted">
+                                Если проблема именно в объявлении (неверное описание, цена, запрещённый товар), выберите тип <strong>«Жалоба на объявление»</strong> (если он есть) или опишите это в поле сообщения, прикрепив ссылку на объявление.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-light small" type="button" data-bs-toggle="collapse" data-bs-target="#faqGuidePremium" aria-expanded="false" aria-controls="faqGuidePremium">
+                                Не начислился премиум или очки поднятий — что делать?
+                            </button>
+                        </h2>
+                        <div id="faqGuidePremium" class="accordion-collapse collapse" data-bs-parent="#supportFaqGuideAccordion">
+                            <div class="accordion-body small text-muted">
+                                Выберите тип <strong>«Премиум / оплата»</strong>. Укажите дату и способ оплаты, примерную сумму, ник в игре и приложите скрин операции — это сильно ускорит проверку и начисление.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-light small" type="button" data-bs-toggle="collapse" data-bs-target="#faqGuideBug" aria-expanded="false" aria-controls="faqGuideBug">
+                                На сайте баг или ошибка — как правильно сообщить?
+                            </button>
+                        </h2>
+                        <div id="faqGuideBug" class="accordion-collapse collapse" data-bs-parent="#supportFaqGuideAccordion">
+                            <div class="accordion-body small text-muted">
+                                Выберите тип <strong>«Сообщить о баге / ошибке»</strong>. Напишите, на какой странице вы были, какие действия выполняли по шагам, что ожидали и что произошло на самом деле. Скриншот ошибки очень помогает.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-light small" type="button" data-bs-toggle="collapse" data-bs-target="#faqGuideIdea" aria-expanded="false" aria-controls="faqGuideIdea">
+                                Хочу предложить улучшение сайта — куда писать?
+                            </button>
+                        </h2>
+                        <div id="faqGuideIdea" class="accordion-collapse collapse" data-bs-parent="#supportFaqGuideAccordion">
+                            <div class="accordion-body small text-muted">
+                                Для идей и пожеланий используйте тип <strong>«Предложение по улучшению»</strong>. Кратко опишите идею, зачем она нужна и как упростит жизнь другим игрокам.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item bg-transparent border-secondary">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed bg-transparent text-light small" type="button" data-bs-toggle="collapse" data-bs-target="#faqGuideOther" aria-expanded="false" aria-controls="faqGuideOther">
+                                Ни один тип не подходит — что выбрать?
+                            </button>
+                        </h2>
+                        <div id="faqGuideOther" class="accordion-collapse collapse" data-bs-parent="#supportFaqGuideAccordion">
+                            <div class="accordion-body small text-muted">
+                                В таком случае выбирайте <strong>«Другое»</strong>. В поле «Кратко о чём» укажите тему (например: «Вопрос по правилам сайта»), а ниже подробно опишите ситуацию — модератор разберётся и ответит вам в разделе «Мои тикеты».
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

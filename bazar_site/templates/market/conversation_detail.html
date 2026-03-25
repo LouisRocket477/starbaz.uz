@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+{% load static market_extras %}
+
+{% block content %}
+<div class="row conv-chat-page">
+    <div class="col-md-8 offset-md-2 conv-chat-col">
+        <div class="conv-chat-header d-flex justify-content-between align-items-center gap-2 mb-3">
+            <h1 class="h5 mb-0 conv-chat-title">
+                {% if conversation.listing %}
+                    <a href="{% url 'market:listing_detail' conversation.listing.pk %}" class="conv-listing-link" title="Перейти к карточке товара">
+                        Чат по объявлению: {{ conversation.listing.title|truncatechars:50 }}
+                    </a>
+                {% else %}
+                    Личный чат
+                {% endif %}
+            </h1>
+            <span class="conv-chat-badge">Чат</span>
+        </div>
+        {% if conversation.listing %}
+        <a href="{% url 'market:listing_detail' conversation.listing.pk %}" class="conv-listing-card card mb-3 text-decoration-none">
+            <div class="card-body py-2.5 px-3 d-flex align-items-center gap-3">
+                <span class="conv-listing-icon"><i class="bi bi-box-seam"></i></span>
+                <span class="conv-listing-title flex-grow-1 text-truncate">{{ conversation.listing.title }}</span>
+                <span class="conv-listing-arrow"><i class="bi bi-chevron-right"></i></span>
+            </div>
+        </a>
+        {% endif %}
+        {% if request.user == conversation.buyer and conversation.listing %}
+            {# 1) Обычная покупка по объявлению "Продаю" #}
+            {% if conversation.listing.in_stock and conversation.listing.deal_type != 'buy' and conversation.listing.quantity and conversation.listing.quantity > 0 or conversation.listing.barter_allowed and conversation.listing.price and conversation.listing.in_stock and conversation.listing.deal_type != 'buy' %}
+                {% if buyer_has_pending_purchase %}
+                <div class="conv-buy-pending card mb-3">
+                    <div class="card-body py-2.5 px-3">
+                        <p class="small mb-0 text-muted">
+                            <i class="bi bi-clock-fill me-1"></i>Заявка на покупку отправлена, ожидайте подтверждения продавца
+                        </p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="conv-buy-card card mb-3" data-unit-price="{{ conversation.listing.price }}" data-currency="{{ conversation.listing.currency }}">
+                    <div class="card-body py-2.5 px-3">
+                        <p class="small mb-2 text-muted">
+                            {% if conversation.listing.quantity and conversation.listing.quantity > 0 %}
+                            <i class="bi bi-cart-plus me-1"></i>В наличии <strong>{{ conversation.listing.quantity }}</strong> шт.
+                            {% endif %}
+                            · За 1 шт.: <strong>{% price_display conversation.listing.price_full conversation.listing.currency %}</strong>
+                        </p>
+                        <form method="post" action="{% url 'market:conversation_request_purchase' conversation.pk %}" class="d-flex align-items-center gap-2 flex-wrap">
+                            {% csrf_token %}
+                            {% if conversation.listing.quantity and conversation.listing.quantity > 0 %}
+                            <label class="d-flex align-items-center gap-2 mb-0">
+                                <span class="small">Количество:</span>
+                                <input type="number" name="quantity" id="conv-buy-qty" min="1" max="{{ conversation.listing.quantity }}" value="1" class="form-control form-control-sm" style="width: 5rem;">
+                            </label>
+                            <span class="small fw-bold text-success conv-total-display"></span>
+                            {% else %}
+                            <input type="hidden" name="quantity" value="1">
+                            {% endif %}
+                            <button type="submit" class="btn btn-starbaz btn-sm">
+                                <i class="bi bi-cart-check me-1"></i>Купить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            {# 2) Продажа своему товару по объявлению "Покупаю" #}
+            {% elif conversation.listing.deal_type == 'buy' and buyer_listings %}
+                <div class="conv-buy-card card mb-3"
+                     data-base-price="{{ conversation.listing.price|default_if_none:0 }}"
+                     data-base-currency="{{ conversation.listing.currency|default:'AUEC' }}">
+                    <div class="card-body py-2.5 px-3">
+                        <p class="small mb-2 text-muted">
+                            <i class="bi bi-cash-stack me-1"></i>
+                            Вы можете предложить продавцу один из ваших товаров:
+                        </p>
+                        <form method="post" action="{% url 'market:conversation_offer_sell' conversation.pk %}" class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                            {% csrf_token %}
+                            <select name="listing_id" class="form-select form-select-sm conv-sell-offer-select" required style="max-width: 260px;">
+                                {% for l in buyer_listings %}
+                                <option value="{{ l.pk }}"
+                                        data-price="{{ l.price|default_if_none:0 }}"
+                                        data-currency="{{ l.currency|default:'AUEC' }}"
+                                        {% if l.quantity %}data-qty="{{ l.quantity }}"{% endif %}>
+                                    {{ l.title|truncatechars:40 }}{% if l.quantity %} — {{ l.quantity }} шт.{% endif %} — {% price_display l.price_full l.currency %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <label class="d-flex align-items-center gap-2 mb-0 flex-shrink-0">
+                                <span class="small">Количество:</span>
+                                <input type="number"
+                                       name="quantity"
+                                       class="form-control form-control-sm conv-sell-offer-qty"
+                                       value="1"
+                                       min="1"
+                                       style="width: 4.5rem;">
+                            </label>
+                            <button type="submit" class="btn btn-starbaz btn-sm">
+                                <i class="bi bi-cash-stack me-1"></i>Продать
+                            </button>
+                        </form>
+                        <p class="small mt-1 mb-0 text-muted conv-sell-offer-stock"></p>
+                        <p class="small mt-1 mb-0 text-muted conv-sell-offer-diff"></p>
+                    </div>
+                </div>
+            {% elif conversation.listing.deal_type == 'buy' and not buyer_listings %}
+                <div class="conv-buy-pending card mb-3">
+                    <div class="card-body py-2.5 px-3">
+                        <p class="small mb-1 text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            У вас сейчас нет активных объявлений для продажи этого товара.
+                        </p>
+                        <p class="small mb-0 text-muted">
+                            Создайте своё объявление с нужным товаром (например «{{ conversation.listing.title|truncatechars:40 }}»),
+                            а затем снова откройте этот чат, чтобы предложить его покупателю.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+{% if request.user == conversation.seller and conversation.listing %}
+    {% if pending_purchase_requests or pending_sell_offer_messages or can_complete_barter %}
+        <div class="conv-complete-deal-card card mb-3" data-unit-price="{{ conversation.listing.price }}" data-currency="{{ conversation.listing.currency }}">
+            <div class="card-body py-2.5 px-3">
+                {% if pending_purchase_requests %}
+                    {% for req in pending_purchase_requests %}
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap conv-seller-deal-row">
+                        <span class="small">
+                            <i class="bi bi-cart me-1"></i><strong>{{ req.buyer.username }}</strong> — <strong>{{ req.quantity }}</strong> шт. = <span class="conv-req-total" data-qty="{{ req.quantity }}"></span>
+                        </span>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <form method="post" action="{% url 'market:conversation_complete_deal' conversation.pk %}" class="d-flex align-items-center gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="purchase_request_id" value="{{ req.pk }}">
+                                <input type="number"
+                                       name="quantity"
+                                       min="1"
+                                       {% if conversation.listing.quantity %}max="{{ conversation.listing.quantity }}"{% endif %}
+                                       value="{{ req.quantity }}"
+                                       class="form-control form-control-sm conv-seller-qty"
+                                       style="width: 4.5rem;">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="bi bi-check-circle me-1"></i>Завершить покупку
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'market:conversation_cancel_purchase' conversation.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="purchase_request_id" value="{{ req.pk }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Товара нет — отменить заказ">
+                                    <i class="bi bi-x-circle me-1"></i>Отменить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if conversation.listing.quantity %}
+                        <p class="small mb-2 text-muted">
+                            <i class="bi bi-box-seam me-1"></i>Осталось <strong>{{ conversation.listing.quantity }}</strong> шт.
+                        </p>
+                    {% endif %}
+                {% endif %}
+                {% if pending_sell_offer_messages %}
+                    <p class="small mb-2 text-muted">
+                        <i class="bi bi-tag me-1"></i>Предложения о продаже:
+                    </p>
+                    {% for msg in pending_sell_offer_messages %}
+                    {% with offer=msg.content|parse_sell_offer_message %}
+                    {% if offer %}
+                    {% sell_offer_details offer conversation.listing.price conversation.listing.currency as so %}
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
+                        <span class="small">
+                            <strong>{{ offer.seller_name }}</strong> — {{ offer.listing_title|truncatechars:35 }}
+                            ({{ offer.price }} {{ offer.currency }}{% if so.qty %} × {{ so.qty }} шт.{% endif %}
+                            {% if so.total %} = {{ so.total }} {{ offer.currency }}{% endif %})
+                        </span>
+                        <form method="post" action="{% url 'market:conversation_accept_sell_offer' conversation.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="message_id" value="{{ msg.pk }}">
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="bi bi-check-circle me-1"></i>Принять предложение
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    {% endfor %}
+                {% endif %}
+                {% if can_complete_barter %}
+                    <div class="conv-barter-request-box mb-0">
+                        <div class="conv-purchase-header">
+                            <i class="bi bi-arrow-left-right conv-bubble-icon me-1"></i>
+                            Заявка на обмен!
+                        </div>
+                        <p class="conv-deal-line mb-2">
+                            Покупатель <strong>{{ other_user.username }}</strong> хочет обмен на ваш «{{ conversation.listing.title|truncatechars:50 }}»
+                        </p>
+                        <p class="conv-purchase-waiting mb-3">
+                            <i class="bi bi-clock-fill me-1"></i>Ожидаю подтверждения продавца
+                        </p>
+                        <form method="post" action="{% url 'market:conversation_complete_barter' conversation.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="bi bi-check-circle me-1"></i>Завершить обмен
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+                {% if not pending_purchase_requests and not pending_sell_offer_messages and not can_complete_barter %}
+                <p class="small mb-0 text-muted">Ожидайте действие покупателя.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
+        <div class="conv-user-card card mb-3">
+            <div class="card-body d-flex align-items-center py-3 px-3">
+                <div class="me-2">
+                    {% if other_profile.avatar %}
+                        <img src="{{ other_profile.avatar.url }}" alt="{{ other_user.username }}" class="rounded-circle conv-avatar">
+                    {% else %}
+                        <div class="rounded-circle conv-avatar-placeholder d-flex align-items-center justify-content-center">
+                            <span class="fw-bold small text-uppercase">{{ other_user.username|first }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <p class="mb-0">
+                        <a href="{% url 'market:seller_detail' other_user.id %}" class="conv-user-link">
+                            {{ other_user.username }}
+                        </a>
+                    </p>
+                    {% if other_profile.game_nickname %}
+                        <p class="small text-muted mb-0">Ник в игре: <a href="{{ other_profile.game_nickname|rsi_citizen_url }}" target="_blank" rel="noopener" class="link-success text-decoration-underline">{{ other_profile.game_nickname }}</a></p>
+                    {% endif %}
+                    {% if other_profile.is_banned %}
+                        <p class="small text-danger mb-0 fw-semibold text-uppercase mt-1">Аккаунт заблокирован</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="conv-messages-card card mb-3">
+            <div class="card-body p-4" id="messages-box" data-last-id="0" data-had-unread="{{ had_unread|yesno:'true,false' }}">
+                {% for message in messages %}
+                    <div class="conv-msg {% if message.sender == request.user %}conv-msg-me{% else %}conv-msg-them{% endif %}">
+                        {% ifchanged message.sender %}
+                            <div class="conv-msg-head">
+                                {% if message.sender == request.user %}
+                                    {% if user_profile.avatar %}
+                                        <img src="{{ user_profile.avatar.url }}" alt="" class="conv-msg-avatar">
+                                    {% else %}
+                                        <span class="conv-msg-avatar conv-msg-avatar-placeholder">{{ request.user.username|first|upper }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% if other_profile.avatar %}
+                                        <img src="{{ other_profile.avatar.url }}" alt="" class="conv-msg-avatar">
+                                    {% else %}
+                                        <span class="conv-msg-avatar conv-msg-avatar-placeholder">{{ other_user.username|first|upper }}</span>
+                                    {% endif %}
+                                {% endif %}
+                                <span class="conv-msg-meta">{{ message.sender.username }} · {{ message.created_at|date:"d.m.Y H:i" }}</span>
+                            </div>
+                        {% endifchanged %}
+                        <div class="conv-bubble-wrap">
+                            {% if message.image %}
+                                <div class="conv-bubble-image mb-1">
+                                    <img src="{{ message.image.url }}" alt="Вложение" class="chat-image-zoom" data-full-url="{{ message.image.url }}">
+                                </div>
+                            {% endif %}
+                            {% if message.content %}
+                                {% with deal_data=message.content|parse_deal_message purchase_data=message.content|parse_purchase_message sell_offer_data=message.content|parse_sell_offer_message barter_completion_data=message.content|parse_barter_completion_message barter_request_data=message.content|parse_barter_request_message %}
+                                {% if deal_data %}
+                                    {% deal_totals deal_data.qty deal_data.total as dtot %}
+                                    <div class="conv-bubble conv-bubble-trade conv-bubble-purchase">
+                                        <div class="conv-purchase-header">
+                                            <i class="bi bi-check-circle-fill conv-bubble-icon me-1"></i>
+                                            Сделка завершена!
+                                        </div>
+                                        <p class="conv-deal-line mb-2">
+                                            {% if request.user == conversation.buyer %}
+                                                Вы приобрели товар(ов) {{ deal_data.qty }} шт. на сумму
+                                            {% else %}
+                                                Покупатель {{ deal_data.buyer_name }} приобрёл {{ deal_data.qty }} шт. на сумму
+                                            {% endif %}
+                                            <span class="conv-deal-sum">{% price_display deal_data.total deal_data.currency %}</span>
+                                        </p>
+                                        {% if dtot.unit %}
+                                        <p class="conv-purchase-details mb-1">
+                                            {{ dtot.qty }} шт. × {% price_display dtot.unit deal_data.currency %} = <strong>{% price_display dtot.total deal_data.currency %}</strong>
+                                        </p>
+                                        {% endif %}
+                                        {% if deal_data.diff_total and deal_data.payer_name %}
+                                        <p class="conv-purchase-details mb-1">
+                                            Доплата: <strong>{% price_display deal_data.diff_total deal_data.currency %}</strong>.
+                                            {% if request.user.username == deal_data.payer_name %}
+                                                Вы должны доплатить эту сумму.
+                                            {% else %}
+                                                Пользователь <strong>{{ deal_data.payer_name }}</strong> должен доплатить эту сумму.
+                                            {% endif %}
+                                        </p>
+                                        {% endif %}
+                                        <p class="conv-purchase-details mb-0">
+                                            Количество товара у продавца: <strong>{{ deal_data.remaining }} шт.</strong>
+                                        </p>
+                                    </div>
+                                {% elif purchase_data %}
+                                    <div class="conv-bubble conv-bubble-trade conv-bubble-purchase">
+                                        <div class="conv-purchase-header">
+                                            <i class="bi bi-cart-fill conv-bubble-icon me-1"></i>
+                                            Заявка на покупку!
+                                        </div>
+                                        <p class="conv-deal-line mb-2">
+                                            {% if request.user == conversation.buyer %}
+                                                Вы покупаете {{ purchase_data.qty }} шт. на сумму
+                                            {% else %}
+                                                Покупатель {% if purchase_data.buyer_name %}{{ purchase_data.buyer_name }}{% else %}{{ message.sender.username }}{% endif %} покупает {{ purchase_data.qty }} шт. на сумму
+                                            {% endif %}
+                                            <span class="conv-deal-sum">{% price_display purchase_data.total purchase_data.currency %}</span>
+                                        </p>
+                                        <p class="conv-purchase-details mb-1">
+                                            Цена за 1 шт.: {% price_display purchase_data.unit_price purchase_data.currency %}
+                                        </p>
+                                        <p class="conv-purchase-waiting mb-0">
+                                            <i class="bi bi-clock-fill me-1"></i>Ожидаю подтверждения продавца
+                                        </p>
+                                    </div>
+                                {% elif sell_offer_data %}
+                                    {% sell_offer_details sell_offer_data conversation.listing.price conversation.listing.currency as so %}
+                                    <div class="conv-bubble conv-bubble-trade conv-bubble-sell">
+                                        <div class="conv-purchase-header">
+                                            <i class="bi bi-tag-fill conv-bubble-icon me-1"></i>
+                                            Предложение своего товара
+                                        </div>
+                                        <p class="conv-deal-line mb-1">
+                                            {% if request.user == conversation.buyer %}
+                                                Вы предлагаете продать
+                                            {% else %}
+                                                Покупатель {{ sell_offer_data.seller_name }} предлагает продать
+                                            {% endif %}
+                                            <a href="{% url 'market:listing_detail' sell_offer_data.listing_pk %}" class="conv-listing-link-inline">{{ sell_offer_data.listing_title|truncatechars:40 }}</a>
+                                        </p>
+                                        <p class="conv-purchase-details mb-1 conv-price-row">
+                                            <span class="conv-price-label">Количество:</span>
+                                            <span><strong>{{ so.qty }}</strong> шт.</span>
+                                        </p>
+                                        <p class="conv-purchase-details mb-1 conv-price-row">
+                                            <span class="conv-price-label">Цена за 1 шт.:</span>
+                                            <span class="conv-unit-price">
+                                                <span class="conv-deal-sum">{% price_display sell_offer_data.price sell_offer_data.currency %}</span>
+                                            </span>
+                                        </p>
+                                        <p class="conv-purchase-details mb-0 conv-price-row">
+                                            <span class="conv-price-label conv-total-label">ИТОГО:</span>
+                                            <span class="conv-total-strong">{% price_display so.total sell_offer_data.currency %}</span>
+                                        </p>
+                                        {% if so.diff_text %}
+                                        <p class="conv-purchase-waiting mb-0 mt-1">
+                                            {{ so.diff_text }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                {% elif barter_completion_data %}
+                                    <div class="conv-bubble conv-bubble-trade conv-bubble-purchase">
+                                        <div class="conv-purchase-header">
+                                            <i class="bi bi-arrow-left-right conv-bubble-icon me-1"></i>
+                                            Обмен завершён
+                                        </div>
+                                        <p class="conv-deal-line mb-0">
+                                            Сделка по «{{ barter_completion_data.listing_title|truncatechars:50 }}» с {{ barter_completion_data.buyer_name }} успешно завершена.
+                                        </p>
+                                    </div>
+                                {% elif barter_request_data %}
+                                    <div class="conv-bubble conv-bubble-trade conv-bubble-purchase">
+                                        <div class="conv-purchase-header">
+                                            <i class="bi bi-arrow-left-right conv-bubble-icon me-1"></i>
+                                            Заявка на обмен
+                                        </div>
+                                        <p class="conv-deal-line mb-0">
+                                            {% if barter_request_data.listing_title %}
+                                                {% if request.user == conversation.buyer %}
+                                                    Вы хотите обмен на «{{ barter_request_data.listing_title|truncatechars:50 }}».
+                                                {% else %}
+                                                    Покупатель {{ message.sender.username }} хочет обмен на «{{ barter_request_data.listing_title|truncatechars:50 }}».
+                                                {% endif %}
+                                            {% elif conversation.listing and conversation.listing.title %}
+                                                {% if request.user == conversation.buyer %}
+                                                    Вы хотите обмен на «{{ conversation.listing.title|truncatechars:50 }}».
+                                                {% else %}
+                                                    Покупатель {{ message.sender.username }} хочет обмен на «{{ conversation.listing.title|truncatechars:50 }}».
+                                                {% endif %}
+                                            {% else %}
+                                                {% if request.user == conversation.buyer %}
+                                                    Вы хотите обмен на этот товар (объявление уже недоступно).
+                                                {% else %}
+                                                    Покупатель {{ message.sender.username }} хочет обмен на этот товар (объявление уже недоступно).
+                                                {% endif %}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                {% else %}
+                                    <div class="conv-bubble {% if '🛒' in message.content or '✅' in message.content or '❌' in message.content or '📤' in message.content or '🔄' in message.content %}conv-bubble-trade{% endif %}">{{ message.content|linebreaksbr }}</div>
+                                {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="conv-empty">Сообщений пока нет. Напишите первое!</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% if deal_review_data and deal_review_data.can_buyer_leave_review or deal_review_data and deal_review_data.existing_review %}
+        <div class="conv-review-card card mb-3">
+            <div class="card-body">
+                {% if deal_review_data.can_buyer_leave_review %}
+                    <p class="conv-review-prompt mb-3">
+                        <i class="bi bi-star-fill text-warning me-1"></i>
+                        Не забудьте оставить отзыв о продавце — это поможет другим покупателям!
+                    </p>
+                    <form method="post" action="{% url 'market:conversation_submit_review' conversation.pk %}">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">Оценка</label>
+                            <div class="conv-review-stars">
+                                {% for i in "54321" %}
+                                <input type="radio" name="rating" value="{{ i }}" id="conv-rating-{{ i }}" required>
+                                <label for="conv-rating-{{ i }}" class="conv-star-label"><span class="conv-star"><i class="bi bi-star-fill"></i></span></label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="conv-review-text" class="form-label small">Отзыв (необязательно)</label>
+                            <textarea name="text"
+                                      id="conv-review-text"
+                                      class="form-control form-control-sm conv-input"
+                                      rows="3"
+                                      placeholder="Можете оставить комментарий о сделке, если хотите."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-starbaz btn-sm">
+                            <i class="bi bi-send me-1"></i>Оставить отзыв
+                        </button>
+                    </form>
+                {% elif deal_review_data.existing_review %}
+                    <div class="conv-review-display">
+                        <p class="small text-muted mb-1">
+                            <i class="bi bi-star-fill text-warning me-1"></i>
+                            Отзыв о продавце от {{ deal_review_data.existing_review.buyer.username }}
+                            · {{ deal_review_data.existing_review.created_at|date:"d.m.Y H:i" }}
+                        </p>
+                        <div class="conv-review-rating mb-1">
+                            {% for i in "12345" %}
+                                <i class="bi {% if forloop.counter <= deal_review_data.existing_review.rating %}bi-star-fill text-warning{% else %}bi-star text-muted{% endif %}"></i>
+                            {% endfor %}
+                        </div>
+                        <p class="conv-review-text mb-2">{{ deal_review_data.existing_review.text }}</p>
+                        {% if deal_review_data.existing_review.reply_text %}
+                            <div class="conv-review-reply ps-3 border-start border-2 border-secondary">
+                                <p class="small text-muted mb-0">
+                                    <i class="bi bi-reply-fill me-1"></i>Ответ продавца · {{ deal_review_data.existing_review.reply_created_at|date:"d.m.Y H:i" }}
+                                </p>
+                                <p class="mb-0 mt-1">{{ deal_review_data.existing_review.reply_text }}</p>
+                            </div>
+                        {% elif deal_review_data.can_seller_reply %}
+                            <form method="post" action="{% url 'market:conversation_submit_review_reply' conversation.pk %}" class="mt-2">
+                                {% csrf_token %}
+                                <div class="mb-2">
+                                    <label for="conv-reply-text" class="form-label small">Ответить на отзыв</label>
+                                    <textarea name="reply_text" id="conv-reply-text" class="form-control form-control-sm conv-input" rows="2" placeholder="Напишите ответ..." required minlength="5"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-reply me-1"></i>Отправить ответ
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        <form method="post"
+              class="conv-form card p-3 mt-0"
+              enctype="multipart/form-data"
+              id="chat-form"
+              data-send-url="{% url 'market:conversation_send_message' conversation.pk %}">
+            {% csrf_token %}
+            <div class="conv-form-body">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <button type="button" class="conv-emoji-btn btn btn-sm" id="chat-emoji-toggle">🙂</button>
+                    <small class="text-muted d-none d-sm-inline" style="font-size: 0.7rem;">Ctrl+V — вставить скриншот</small>
+                </div>
+                <div id="chat-emoji-panel" class="conv-emoji-panel mb-2" style="display: none;">
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">😀</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">😁</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">😂</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">😉</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">😊</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">😍</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">🤔</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">👍</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">🔥</button>
+                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-1 chat-emoji-btn">🎉</button>
+                </div>
+                <textarea name="content"
+                          id="chat-message-input"
+                          class="conv-input"
+                          rows="3"
+                          placeholder="Написать сообщение..."></textarea>
+                <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+                    <label for="chat-image-input" class="conv-attach-btn" title="Прикрепить файл">
+                        <i class="bi bi-paperclip"></i>
+                        <input type="file" name="image" id="chat-image-input" accept="image/*" class="visually-hidden">
+                    </label>
+                    <span class="small text-muted" id="chat-image-label" style="font-size: 0.75rem;">Файл не выбран</span>
+                    <button type="submit" class="conv-submit-btn ms-auto" id="chat-submit-btn" aria-label="Отправить">
+                        <i class="bi bi-send-fill me-1"></i>Отправить
+                    </button>
+                </div>
+                <small id="chat-cooldown-hint" class="conv-cooldown-hint"></small>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/conversation_detail.css' %}">
+<audio id="msg-sound" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+</audio>
+<script src="{% static 'market/js/conversation_detail.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% load static %}
+<div class="row justify-content-center mb-3">
+    <div class="col-lg-9 col-xl-8">
+        <div class="support-actions-grid">
+            <a href="{% url 'market:support_new' %}" class="support-action-card">
+                <div class="support-action-icon">
+                    <i class="bi bi-chat-square-dots-fill"></i>
+                </div>
+                <div class="support-action-text">
+                    <div class="support-action-title">Создать новый тикет</div>
+                    <div class="support-action-subtitle">Запросить товар, сообщить о проблеме или задать вопрос администрации.</div>
+                </div>
+            </a>
+            <a href="{% url 'market:support_my' %}" class="support-action-card">
+                <div class="support-action-icon">
+                    <i class="bi bi-inboxes-fill"></i>
+                </div>
+                <div class="support-action-text">
+                    <div class="support-action-title">Мои тикеты</div>
+                    <div class="support-action-subtitle">Следите за статусом обращений и ответами администрации по вашим заявкам.</div>
+                </div>
+            </a>
+            <a href="{% url 'market:support_faq' %}" class="support-action-card">
+                <div class="support-action-icon">
+                    <i class="bi bi-question-circle-fill"></i>
+                </div>
+                <div class="support-action-text">
+                    <div class="support-action-title">Вопросы по сайту</div>
+                    <div class="support-action-subtitle">Быстрые ответы на популярные вопросы о работе BAZAR и правилах.</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+

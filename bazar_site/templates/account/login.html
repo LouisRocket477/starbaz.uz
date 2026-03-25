@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block content %}
+<div class="text-center mb-3">
+    <span class="fw-bold fs-4">{{ site_settings.logo_text }}</span>
+</div>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card p-4 p-md-5">
+            <h1 class="h4 mb-3 text-center">Вход на BAZAR</h1>
+
+            <h2 class="h6 mt-3 mb-2">Вход по e‑mail / логину</h2>
+            <form method="post" action="{% url 'account_login' %}" class="mb-4" id="login-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 small mb-3">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="mb-3">
+                    <label class="form-label">E‑mail или имя пользователя</label>
+                    {{ form.login|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Пароль</label>
+                    <div class="input-group">
+                        {{ form.password|add_class:"form-control"|attr:"id:password-input" }}
+                        <button type="button" class="btn btn-outline-secondary" id="toggle-password-visibility">
+                            <span id="password-eye" class="bi bi-eye"></span>
+                        </button>
+                    </div>
+                    <div id="password-hint" class="password-hint mt-2">
+                        <span class="password-hint-chip">
+                            <i class="bi bi-keyboard"></i>
+                            Раскладка: <strong data-role="layout">—</strong>
+                        </span>
+                        <span class="password-hint-chip" data-role="caps-chip">
+                            <i class="bi bi-capslock"></i>
+                            CapsLock: <strong data-role="caps">ВЫКЛ</strong>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-check mb-3">
+                    {{ form.remember|add_class:"form-check-input" }}
+                    <label class="form-check-label">Запомнить меня</label>
+                </div>
+
+                {% if recaptcha_public_key %}
+                    <input type="hidden" name="g-recaptcha-response" id="login-recaptcha-token">
+                {% endif %}
+                <button type="submit" class="btn btn-starbaz w-100">Войти</button>
+            </form>
+
+            <p class="small text-muted text-center mt-3 mb-0">
+                Нет аккаунта? <a href="{% url 'account_signup' %}" class="link-light">Зарегистрироваться</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'account/css/auth.css' %}">
+<script src="{% static 'account/js/auth.js' %}"></script>
+{% if recaptcha_public_key %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_public_key }}"></script>
+<script>
+  (function () {
+    var form = document.getElementById('login-form');
+    var tokenInput = document.getElementById('login-recaptcha-token');
+    if (!form || !tokenInput || !window.grecaptcha) return;
+
+    form.addEventListener('submit', function (e) {
+      if (tokenInput.value) return;
+      e.preventDefault();
+      grecaptcha.ready(function () {
+        grecaptcha.execute('{{ recaptcha_public_key }}', { action: 'login' }).then(function (token) {
+          tokenInput.value = token;
+          form.submit();
+        });
+      });
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

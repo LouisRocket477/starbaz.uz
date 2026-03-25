@@ -1,0 +1,49 @@
+{% load tz %}
+<footer class="border-top py-3 mt-auto small text-muted">
+    <div class="container d-flex flex-column gap-2">
+        <div class="d-flex flex-wrap justify-content-center gap-3 footer-links-line">
+            {% if site_settings.footer_about_url %}
+                <a href="{{ site_settings.footer_about_url }}" class="footer-link text-decoration-none">{{ site_settings.footer_about_title }}</a>
+            {% endif %}
+            {% if site_settings.footer_privacy_url %}
+                <a href="{{ site_settings.footer_privacy_url }}" class="footer-link text-decoration-none">{{ site_settings.footer_privacy_title }}</a>
+            {% endif %}
+            {% if site_settings.footer_discord_url %}
+                <a href="{{ site_settings.footer_discord_url }}" class="footer-link text-decoration-none" target="_blank" rel="noopener">
+                    {{ site_settings.footer_discord_title }}
+                </a>
+            {% endif %}
+            {% if site_settings.footer_extra1_url and site_settings.footer_extra1_title %}
+                <a href="{{ site_settings.footer_extra1_url }}" class="footer-link text-decoration-none">{{ site_settings.footer_extra1_title }}</a>
+            {% endif %}
+            {% if site_settings.footer_extra2_url and site_settings.footer_extra2_title %}
+                <a href="{{ site_settings.footer_extra2_url }}" class="footer-link text-decoration-none">{{ site_settings.footer_extra2_title }}</a>
+            {% endif %}
+            {% if site_settings.footer_extra3_url and site_settings.footer_extra3_title %}
+                <a href="{{ site_settings.footer_extra3_url }}" class="footer-link text-decoration-none">{{ site_settings.footer_extra3_title }}</a>
+            {% endif %}
+        </div>
+
+        {% if site_settings.footer_disclaimer %}
+            <div class="footer-disclaimer">
+                {{ site_settings.footer_disclaimer }}
+            </div>
+        {% endif %}
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <span>
+                {{ site_settings.footer_left|default:"© StarBaz 2026" }}
+                · <a href="{% url 'market:about' %}" class="footer-link text-decoration-none">О нас</a>
+                · <a href="{% url 'market:rules' %}" class="footer-link text-decoration-none">Правила</a>
+                · <a href="{% url 'market:support' %}" class="footer-link text-decoration-none">Поддержка</a>
+            </span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="footer-counter" title="Сейчас на сайте (активные сессии за последние 10 минут)">
+                    <i class="bi bi-people-fill"></i> {{ site_online_now|default:0 }}
+                </span>
+                <span>{{ site_settings.footer_right|default:"StarBaz by Louis Rocket" }}</span>
+            </div>
+        </div>
+
+    </div>
+</footer>

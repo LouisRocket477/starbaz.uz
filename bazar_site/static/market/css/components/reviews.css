@@ -1,0 +1,119 @@
+/* Общие стили отзывов — используются на странице объявления и в чате */
+
+.rating-stars .star {
+    cursor: pointer;
+    font-size: 20px;
+    color: #4b5563;
+    user-select: none;
+}
+
+.rating-stars .star.selected {
+    color: #facc15;
+}
+
+.rating-stars .star.hover {
+    color: #facc15;
+}
+
+.review-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.35);
+}
+
+.review-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.review-item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.review-item-avatar img,
+.review-item-avatar .review-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.review-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(71, 85, 105, 0.6);
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+
+.review-item-meta {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.review-item-author {
+    font-weight: 600;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.review-item-date {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.review-item-rating {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.review-rating-text {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-left: 0.35rem;
+}
+
+.review-item-text {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+    margin-bottom: 0;
+}
+
+.review-item-text p {
+    margin-bottom: 0.4rem;
+}
+
+.review-item-text p:last-child {
+    margin-bottom: 0;
+}
+
+.review-reply-block {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    padding-left: 1rem;
+    border-left: 3px solid rgba(56, 189, 248, 0.5);
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.review-reply-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #94a3b8;
+    margin-bottom: 0.35rem;
+}
+
+.review-reply-text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+}

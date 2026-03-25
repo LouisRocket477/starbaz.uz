@@ -1,0 +1,15 @@
+{% comment %}
+Динамические стили темы — цвета и фон из site_settings.
+Должны оставаться в шаблоне, т.к. подставляются из контекста Django.
+{% endcomment %}
+<style>
+    :root {
+        --primary-color: {{ site_settings.primary_color|default:"#1f2937" }};
+        --secondary-color: {{ site_settings.secondary_color|default:"#22c55e" }};
+    }
+    {% if site_settings.background_media and not site_settings.background_is_video %}
+    body {
+        background: #020617 url('{{ site_settings.background_media.url }}') center center / cover no-repeat fixed;
+    }
+    {% endif %}
+</style>

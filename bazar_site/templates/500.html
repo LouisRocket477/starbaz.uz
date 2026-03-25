@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card p-4 p-md-5 text-center">
+            <h1 class="h4 mb-3 text-danger">Ошибка на сервере</h1>
+            <p class="text-muted mb-3">
+                {{ message }}
+            </p>
+            <p class="small text-muted mb-4">
+                Попробуйте обновить страницу чуть позже. Если ошибка повторяется, свяжитесь с администрацией проекта.
+            </p>
+            <a href="{% url 'market:home' %}" class="btn btn-starbaz">
+                На главную
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

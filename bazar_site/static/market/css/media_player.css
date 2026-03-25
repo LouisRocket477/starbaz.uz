@@ -1,0 +1,151 @@
+/* Глобальный медиаплеер в режиме одной кнопки (play/stop). */
+
+/* Оставлен на случай старого класса в шаблоне */
+.media-player-toggle {
+    position: relative;
+}
+
+/* Маленькая нота в навбаре */
+.media-player-toggle-nav {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform-origin: top center;
+    animation: media-note-sway 5s ease-in-out infinite;
+    transition:
+        background 0.16s ease-out,
+        color 0.16s ease-out,
+        transform 0.12s ease-out,
+        box-shadow 0.18s ease-out;
+}
+
+.media-player-toggle-nav:hover {
+    background: rgba(15, 23, 42, 0.85);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.8);
+    animation-play-state: paused;
+    transform: translateY(-1px);
+}
+
+.media-player-toggle-nav i {
+    font-size: 0.9rem;
+}
+
+/* Мини-подсказка с названием трека при наведении на ноту */
+.media-player-toggle-nav::before {
+    content: attr(data-track-title);
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.72rem;
+    line-height: 1.1;
+    color: #e2e8f0;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 6px;
+    padding: 0.3rem 0.45rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.16s ease-out, transform 0.16s ease-out, visibility 0.16s ease-out;
+    z-index: 20;
+}
+
+.media-player-toggle-nav:hover::before,
+.media-player-toggle-nav:focus-visible::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+}
+
+@media (max-width: 991.98px) {
+    .media-player-toggle-nav::before {
+        left: 50%;
+        top: calc(100% + 8px);
+        transform: translateX(-50%) translateY(-4px);
+    }
+
+    .media-player-toggle-nav:hover::before,
+    .media-player-toggle-nav:focus-visible::before {
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Когда музыка играет — мягкая зелёная подсветка */
+.media-player-toggle-nav.is-playing {
+    color: #4ade80;
+    text-shadow: 0 0 6px rgba(74, 222, 128, 0.55);
+    animation: media-note-sway 5s ease-in-out infinite;
+}
+
+.media-player-toggle-nav.is-playing::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(74, 222, 128, 0.35), transparent 70%);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes media-note-sway {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(1px) rotate(3deg);
+    }
+    50% {
+        transform: translateY(2px) rotate(0deg);
+    }
+    75% {
+        transform: translateY(1px) rotate(-3deg);
+    }
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+}
+
+/* Временный индикатор громкости при скролле на ноте */
+.media-volume-hud {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-50%) translateY(-6px);
+    padding: 0.28rem 0.52rem;
+    border-radius: 7px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.96);
+    color: #e2e8f0;
+    font-size: 0.7rem;
+    line-height: 1.1;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.16s ease-out, transform 0.16s ease-out, visibility 0.16s ease-out;
+    z-index: 1060;
+    white-space: nowrap;
+}
+
+.media-volume-hud.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}

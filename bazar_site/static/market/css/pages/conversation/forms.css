@@ -1,0 +1,107 @@
+/* ===== Форма чата ===== */
+
+.conv-form .card-body,
+.conv-form {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem !important;
+    margin-top: 0.5rem;
+}
+
+.conv-emoji-btn {
+    color: #94a3b8;
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.4rem;
+    font-size: 0.9rem;
+}
+.conv-emoji-panel {
+    padding: 0.35rem 0.5rem;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 0.5rem;
+}
+
+.conv-input {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: #e2e8f0;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    border-radius: 0.6rem;
+    resize: vertical;
+    min-height: 72px;
+}
+.conv-input::placeholder {
+    color: #64748b;
+}
+.conv-input:focus {
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    outline: none;
+}
+
+.conv-attach-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    background: rgba(15, 23, 42, 0.8);
+    color: #94a3b8;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+.conv-attach-btn:hover {
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #e2e8f0;
+}
+.conv-attach-btn i {
+    font-size: 1rem;
+}
+
+.conv-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--secondary-color, #22c55e), #16a34a);
+    color: #0b1120;
+    border: none;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+.conv-submit-btn:hover {
+    filter: brightness(1.1);
+}
+
+.conv-cooldown-hint {
+    display: block;
+    min-height: 1rem;
+    color: #facc15;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.chat-emoji-btn {
+    font-size: 1rem;
+}
+
+.card.shake {
+    animation: chat-shake 0.25s linear;
+}
+@keyframes chat-shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+}

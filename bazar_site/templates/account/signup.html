@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block content %}
+<div class="text-center mb-3">
+    <span class="fw-bold fs-4">{{ site_settings.logo_text }}</span>
+</div>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card p-4 p-md-5">
+            <h1 class="h4 mb-3 text-center">Регистрация на BAZAR</h1>
+
+            <h2 class="h6 mt-3 mb-2">Регистрация по e‑mail</h2>
+            <form method="post" action="{% url 'account_signup' %}" class="mb-4" id="signup-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 mb-3">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+                <div class="mb-3">
+                    <label class="form-label">E‑mail</label>
+                    {{ form.email|add_class:"form-control" }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.email.errors|striptags }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Имя пользователя</label>
+                    {{ form.username|add_class:"form-control" }}
+                    {% if form.username.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.username.errors|striptags }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Пароль</label>
+                    <div class="input-group">
+                        {{ form.password1|add_class:"form-control"|attr:"id:password1-input" }}
+                        <button type="button" class="btn btn-outline-secondary" id="toggle-password1-visibility">
+                            <span id="password1-eye" class="bi bi-eye"></span>
+                        </button>
+                    </div>
+                    <div id="password1-hint" class="password-hint mt-2">
+                        <span class="password-hint-chip">
+                            <i class="bi bi-keyboard"></i>
+                            Раскладка: <strong data-role="layout">—</strong>
+                        </span>
+                        <span class="password-hint-chip" data-role="caps-chip">
+                            <i class="bi bi-capslock"></i>
+                            CapsLock: <strong data-role="caps">ВЫКЛ</strong>
+                        </span>
+                    </div>
+                    {% if form.password1.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.password1.errors|striptags }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Повторите пароль</label>
+                    <div class="input-group">
+                        {{ form.password2|add_class:"form-control"|attr:"id:password2-input" }}
+                        <button type="button" class="btn btn-outline-secondary" id="toggle-password2-visibility">
+                            <span id="password2-eye" class="bi bi-eye"></span>
+                        </button>
+                    </div>
+                    <div id="password2-hint" class="password-hint mt-2">
+                        <span class="password-hint-chip">
+                            <i class="bi bi-keyboard"></i>
+                            Раскладка: <strong data-role="layout">—</strong>
+                        </span>
+                        <span class="password-hint-chip" data-role="caps-chip">
+                            <i class="bi bi-capslock"></i>
+                            CapsLock: <strong data-role="caps">ВЫКЛ</strong>
+                        </span>
+                    </div>
+                    {% if form.password2.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.password2.errors|striptags }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% if recaptcha_public_key %}
+                    <input type="hidden" name="g-recaptcha-response" id="signup-recaptcha-token">
+                {% endif %}
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.accept_rules|add_class:"form-check-input"|attr:"id:signup-accept-rules" }}
+                        <label class="form-check-label small text-muted" for="signup-accept-rules">
+                            Я подтверждаю, что ознакомился с
+                            <a href="{% url 'market:rules' %}" target="_blank" rel="noopener" class="link-light text-decoration-underline">Правилами проекта</a>,
+                            юридической информацией и условиями модерации.
+                        </label>
+                    </div>
+                    {% if form.accept_rules.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.accept_rules.errors|striptags }}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="button" class="btn btn-starbaz w-100" id="signup-legal-open">
+                    Зарегистрироваться
+                </button>
+            </form>
+
+            <div class="modal fade" id="signupLegalModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header border-0">
+                            <h2 class="h5 mb-0">Юридическая информация и согласие</h2>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                        </div>
+                        <div class="modal-body pt-0">
+                            <div class="legal-scroll-box" id="signup-legal-scroll">
+                                {% if site_settings.signup_legal_text %}
+                                    {{ site_settings.signup_legal_text|safe }}
+                                {% else %}
+                                    <p class="text-muted">
+                                        Этот сайт является частным неофициальным проектом сообщества игроков и
+                                        не аффилирован с правообладателями игры или иными компаниями.
+                                    </p>
+                                    <p class="text-muted">
+                                        Площадка предназначена исключительно для обмена виртуальными предметами и услугами в рамках игры.
+                                        Здесь не ведётся торговля реальной валютой, ценными бумагами, инвестиционными продуктами
+                                        и иными финансовыми инструментами.
+                                    </p>
+                                    <p class="text-muted">
+                                        Сайт не является финансовой пирамидой, инвестпроектом или способом пассивного дохода.
+                                        Мы не обещаем и не гарантируем никакой прибыли, доходности, процентов и т.п.
+                                    </p>
+                                    <p class="text-muted">
+                                        Любые денежные средства, которые вы переводите в пользу проекта (донаты, поддержка сервера
+                                        и т.п.), являются добровольными благотворительными взносами, не предполагающими
+                                        обязательства возврата или получения дохода.
+                                    </p>
+                                    <p class="text-muted">
+                                        Используя сайт, вы подтверждаете, что понимаете игровую и развлекательную природу сервиса,
+                                        совершаете все действия осознанно и берёте на себя ответственность за свои решения.
+                                    </p>
+                                    <p class="text-muted mb-0">
+                                        Продолжая регистрацию, вы подтверждаете, что ознакомились с этой информацией и полностью с ней согласны.
+                                    </p>
+                                {% endif %}
+                                <hr class="border-secondary">
+                                <div class="small text-muted mb-3">
+                                    <p class="mb-2"><strong>Ключевые условия проекта:</strong></p>
+                                    <ul class="mb-0">
+                                        <li>Запрещены RMT‑схемы: продажа/покупка игровой валюты за реальные деньги, обмен на фиат и любые обходные механики.</li>
+                                        <li>Запрещены мошеннические и фиктивные сделки, накрутка отзывов, спам и иные махинации.</li>
+                                        <li>Администрация вправе ограничить функции, временно заблокировать или удалить аккаунт без предварительного уведомления при критических нарушениях.</li>
+                                        <li>Решения администрации по вопросам безопасности и мошенничества могут быть окончательными; обращение в поддержку не гарантирует пересмотр санкции.</li>
+                                    </ul>
+                                </div>
+                                <p class="text-muted mb-0 small">
+                                    Полная версия правил доступна на странице
+                                    <a href="{% url 'market:rules' %}" target="_blank" rel="noopener" class="link-light text-decoration-underline">«Правила проекта»</a>.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 d-flex justify-content-between align-items-center">
+                            <span class="small text-muted" id="signup-legal-hint">
+                                Пролистайте текст до конца, чтобы активировать кнопку согласия.
+                            </span>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                                    Отмена
+                                </button>
+                                <button type="button" class="btn btn-starbaz btn-sm" id="signup-legal-accept" disabled>
+                                    Согласен с условиями
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'account/css/auth.css' %}">
+<script src="{% static 'account/js/auth.js' %}"></script>
+<script src="{% static 'account/js/signup_legal.js' %}"></script>
+{% if recaptcha_public_key %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_public_key }}"></script>
+<script>
+  (function () {
+    var form = document.getElementById('signup-form');
+    var tokenInput = document.getElementById('signup-recaptcha-token');
+    if (!form || !tokenInput || !window.grecaptcha) return;
+
+    form.addEventListener('submit', function (e) {
+      if (tokenInput.value) return;
+      e.preventDefault();
+      grecaptcha.ready(function () {
+        grecaptcha.execute('{{ recaptcha_public_key }}', { action: 'signup' }).then(function (token) {
+          tokenInput.value = token;
+          form.submit();
+        });
+      });
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

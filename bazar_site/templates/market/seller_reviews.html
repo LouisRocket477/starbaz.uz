@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load market_extras %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-body text-center">
+                <div class="mb-3 d-flex justify-content-center">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="Аватар" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                            <span class="fw-bold fs-3">{{ seller.username|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <h1 class="h5 mb-1 d-flex flex-column align-items-center gap-1">
+                    <div>
+                        <span class="online-indicator {% if seller_is_online %}online-indicator-online{% else %}online-indicator-offline{% endif %}"
+                              title="{% if seller_is_online %}Онлайн{% else %}Оффлайн{% endif %}"></span>
+                        {{ seller.username }}
+                    </div>
+                    {% if is_guarantor %}
+                        <span class="guarantor-label">Гарант</span>
+                    {% endif %}
+                </h1>
+                {% if profile.game_nickname %}
+                    <div class="small text-muted mb-1">Ник в игре: <a href="{{ profile.game_nickname|rsi_citizen_url }}" target="_blank" rel="noopener" class="link-success text-decoration-underline">{{ profile.game_nickname }}</a></div>
+                {% endif %}
+                <div class="mb-2 d-flex justify-content-center gap-2 flex-wrap">
+                    {% if avg_rating %}
+                        <span class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= avg_rating_rounded %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="small text-muted ms-2">{{ avg_rating|floatformat:1 }}/5</span>
+                    {% else %}
+                        <span class="small text-muted">Пока нет оценок</span>
+                    {% endif %}
+                    {% if seller_status %}
+                        <span class="status-badge {{ seller_status_class }}">{{ seller_status }}</span>
+                    {% endif %}
+                </div>
+                <p class="small text-muted mb-1">
+                    👍 {{ likes_count }} · 👎 {{ dislikes_count }}
+                </p>
+                <p class="small text-muted mb-0">
+                    Заказов: {{ orders_count }}
+                </p>
+                <div class="mt-3">
+                    <a href="{% url 'market:seller_detail' seller.id %}" class="btn btn-outline-light btn-sm w-100">Назад к странице продавца</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Все отзывы о продавце</h2>
+                {% if reviews %}
+                    {% for review in reviews %}
+                        <div class="mb-3 border-bottom pb-2">
+                            <div class="d-flex align-items-center mb-1">
+                                <div class="me-2">
+                                    {% if review.buyer.profile.avatar %}
+                                        <img src="{{ review.buyer.profile.avatar.url }}" alt="{{ review.buyer.username }}" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <span class="fw-bold small text-uppercase">{{ review.buyer.username|first }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex justify-content-between flex-grow-1 small">
+                                    <span>{{ review.buyer.username }}</span>
+                                    <span class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</span>
+                                </div>
+                            </div>
+                            <div class="mb-1">
+                                <span class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                    {% endfor %}
+                                </span>
+                                <span class="small text-muted ms-2">{{ review.rating }}/5</span>
+                            </div>
+                            <p class="small mb-1">{{ review.text|linebreaks }}</p>
+                            {% if review.reply_text %}
+                                <div class="small text-muted mt-1">
+                                    <strong>Ответ продавца:</strong><br>
+                                    {{ review.reply_text|linebreaks }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted small mb-0">Пока нет ни одного отзыва.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

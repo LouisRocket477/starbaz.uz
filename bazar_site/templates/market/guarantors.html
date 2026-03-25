@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-4 text-center">
+        <h1 class="h3 fw-bold mb-2">Гаранты сделок</h1>
+        <p class="text-muted mb-0">
+            Надёжные пользователи, которых администрация отмечает как гарантов. Вы можете обращаться к ним для безопасных сделок.
+        </p>
+    </div>
+
+    {% if guarantors %}
+        <div class="row g-4 justify-content-center">
+            {% for profile in guarantors %}
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <div class="card h-100 text-center guarantor-card border-0 p-3">
+                        <div class="d-flex flex-column align-items-center">
+                            <a href="{% url 'market:seller_detail' profile.user.id %}" class="text-decoration-none text-reset">
+                                <div class="guarantor-avatar-wrapper mb-3">
+                                    {% if profile.avatar %}
+                                        <img src="{{ profile.avatar.url }}" alt="{{ profile.user.username }}" class="guarantor-avatar">
+                                    {% else %}
+                                        <div class="guarantor-avatar fallback">
+                                            {{ profile.user.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </a>
+                            <div class="mb-1">
+                                <span class="online-indicator {% if profile.is_online_flag %}online-indicator-online{% else %}online-indicator-offline{% endif %}"></span>
+                                <a href="{% url 'market:seller_detail' profile.user.id %}" class="fw-semibold link-light text-decoration-underline">
+                                    {{ profile.user.username }}
+                                </a>
+                            </div>
+                            {% if profile.game_nickname %}
+                                <div class="text-muted small mb-1">
+                                    Ник в игре: {{ profile.game_nickname }}
+                                </div>
+                            {% endif %}
+                            {% if profile.guarantor_title %}
+                                <div class="badge bg-warning text-dark mb-2">
+                                    {{ profile.guarantor_title }}
+                                </div>
+                            {% endif %}
+                            {% if profile.guarantor_description %}
+                                <p class="small text-muted mb-2">
+                                    {{ profile.guarantor_description }}
+                                </p>
+                            {% endif %}
+
+                            <div class="mb-2 d-flex align-items-center justify-content-center gap-2 flex-wrap">
+                                {% if profile.avg_rating %}
+                                    <span class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= profile.avg_rating_rounded %}★{% else %}☆{% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <span class="small text-muted">{{ profile.avg_rating|floatformat:1 }}/5</span>
+                                {% else %}
+                                    <span class="small text-muted">Пока нет оценок</span>
+                                {% endif %}
+                                {% if profile.seller_status %}
+                                    <span class="status-badge {{ profile.seller_status_class }}">
+                                        {{ profile.seller_status }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <p class="small text-muted mb-3">
+                                👍 {{ profile.likes_count }} · 👎 {{ profile.dislikes_count }} · Заказов: {{ profile.orders_count }}
+                            </p>
+
+                            <div class="social-links-inline">
+                                {% if profile.telegram %}
+                                    <a href="{{ profile.telegram }}" target="_blank" rel="noopener" class="social-icon me-1" title="Telegram">
+                                        <i class="bi bi-telegram"></i>
+                                    </a>
+                                {% endif %}
+                                {% if profile.discord %}
+                                    <a href="{{ profile.discord }}" target="_blank" rel="noopener" class="social-icon me-1" title="Discord">
+                                        <i class="bi bi-discord"></i>
+                                    </a>
+                                {% endif %}
+                                {% if profile.steam %}
+                                    <a href="{{ profile.steam }}" target="_blank" rel="noopener" class="social-icon me-1" title="Steam">
+                                        <i class="bi bi-steam"></i>
+                                    </a>
+                                {% endif %}
+                                {% if profile.youtube %}
+                                    <a href="{{ profile.youtube }}" target="_blank" rel="noopener" class="social-icon me-1" title="YouTube">
+                                        <i class="bi bi-youtube"></i>
+                                    </a>
+                                {% endif %}
+                                {% if profile.twitch %}
+                                    <a href="{{ profile.twitch }}" target="_blank" rel="noopener" class="social-icon me-1" title="Twitch">
+                                        <i class="bi bi-twitch"></i>
+                                    </a>
+                                {% endif %}
+                                {% if profile.instagram %}
+                                    <a href="{{ profile.instagram }}" target="_blank" rel="noopener" class="social-icon me-1" title="Instagram">
+                                        <i class="bi bi-instagram"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-secondary bg-opacity-10 border-opacity-25 text-center">
+            На данный момент гаранты ещё не добавлены. Свяжитесь с администрацией для уточнения информации.
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/guarantors.css' %}">
+{% endblock %}
+

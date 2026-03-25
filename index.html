@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>starbaz.uz</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1020;
+        --card: rgba(255, 255, 255, 0.08);
+        --text: #e8ecff;
+        --muted: rgba(232, 236, 255, 0.7);
+        --accent: #7c5cff;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f7ff;
+          --card: rgba(10, 20, 60, 0.08);
+          --text: #0b1020;
+          --muted: rgba(11, 16, 32, 0.7);
+        }
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        background: radial-gradient(1200px 600px at 20% 10%, rgba(124, 92, 255, 0.35), transparent 60%),
+          radial-gradient(900px 500px at 80% 20%, rgba(0, 210, 255, 0.25), transparent 55%),
+          var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(920px, 100%);
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        padding: 28px;
+        backdrop-filter: blur(10px);
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 28px;
+        letter-spacing: 0.2px;
+      }
+      p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+      a.btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        text-decoration: none;
+        color: var(--text);
+        background: rgba(0, 0, 0, 0.12);
+      }
+      a.btn.primary {
+        border-color: rgba(124, 92, 255, 0.65);
+        background: linear-gradient(135deg, rgba(124, 92, 255, 0.35), rgba(124, 92, 255, 0.15));
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.95em;
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .hint {
+        margin-top: 18px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>starbaz.uz</h1>
+      <p>
+        Репозиторий был пустой, поэтому я добавил стартовую страницу. Дальше можно
+        заменить её твоими файлами сайта.
+      </p>
+      <div class="row">
+        <a class="btn primary" href="#" onclick="copyCmd(event)">Скопировать команду запуска</a>
+        <a class="btn" href="https://github.com/LouisRocket477/starbaz.uz" target="_blank" rel="noreferrer">Открыть репозиторий</a>
+      </div>
+      <p class="hint">
+        Локально открыть сайт можно командой: <code>python -m http.server 8000</code> (в папке проекта), затем открыть
+        <code>http://localhost:8000</code>.
+      </p>
+    </main>
+    <script>
+      function copyCmd(e) {
+        e.preventDefault();
+        const cmd = "python -m http.server 8000";
+        navigator.clipboard?.writeText(cmd);
+      }
+    </script>
+  </body>
+</html>

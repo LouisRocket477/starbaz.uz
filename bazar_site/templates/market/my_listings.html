@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static market_extras %}
+
+{% block content %}
+<div class="my-listings-header d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-2 mb-3">
+    <h1 class="h4 mb-0">Мои объявления</h1>
+    <div class="my-listings-header-center flex-md-grow-1 d-flex justify-content-md-center">
+        <form method="get" class="my-listings-search-form">
+            <div class="my-listings-search">
+                <i class="bi bi-search"></i>
+                <input type="text"
+                       name="q"
+                       placeholder="Поиск по моим объявлениям"
+                       value="{{ query|default_if_none:'' }}">
+                <button type="submit">Найти</button>
+            </div>
+        </form>
+    </div>
+    <a href="{% url 'market:listing_create' %}" class="btn btn-starbaz btn-sm my-listings-new-btn">Выставить новый товар</a>
+</div>
+<div class="my-listings-grid">
+    {% for listing in listings %}
+        <div class="my-listings-item">
+            <div class="card h-100 {% if listing.status == 'sold' %}opacity-50{% elif listing.status == 'active' %}border border-success{% endif %}">
+                {% with image=listing.main_image %}
+                    {% if image %}
+                        <img src="{{ image.image.url }}" class="card-img-top" alt="{{ listing.title }}">
+                    {% else %}
+                        <img src="{% static 'market/images/listing-default.png' %}" class="card-img-top" alt="{{ listing.title }}">
+                    {% endif %}
+                {% endwith %}
+                {% if listing.boosted_until and listing.boosted_until >= now %}
+                    <div class="my-listings-boost-pill">
+                        <span class="my-listings-boost-label">Топ 24ч</span>
+                        <span class="my-listings-boost-timer" data-boost-until="{{ listing.boosted_until|date:'c' }}">
+                            00:00:00
+                        </span>
+                    </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title listing-card-title mb-1">
+                        {{ listing.title }}
+                    </h5>
+                    <p class="card-text small text-muted mb-1">
+                        {{ listing.category.name }}
+                    </p>
+                    <div class="d-flex align-items-center mb-2 gap-1 flex-wrap">
+                        <span class="fw-bold">{% price_display listing.price_full listing.currency %}</span>
+                        {% if listing.status == 'sold' %}
+                            <span class="badge bg-secondary my-listings-status-badge">Завершён</span>
+                            {% if listing.deal_type != 'buy' %}
+                                <span class="badge bg-warning text-dark my-listings-status-badge">Нет в наличии</span>
+                            {% endif %}
+                        {% elif listing.status == 'active' %}
+                            <span class="badge bg-success my-listings-status-badge">Активно</span>
+                            {% if listing.deal_type == 'buy' %}
+                                <span class="badge bg-info text-dark my-listings-status-badge">Покупаю</span>
+                            {% elif listing.deal_type == 'trade' %}
+                                <span class="badge bg-info text-dark my-listings-status-badge">Обмен</span>
+                            {% endif %}
+                            {% if listing.deal_type != 'buy' and not listing.in_stock %}
+                                <span class="badge bg-secondary my-listings-status-badge">Нет в наличии</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="my-listings-meta mb-2">
+                        <span><i class="bi bi-eye me-1"></i>{{ listing.views }}</span>
+                        {% if listing.quantity %}
+                            <span><i class="bi bi-box-seam me-1"></i>{{ listing.quantity }} шт.</span>
+                        {% endif %}
+                        <span><i class="bi bi-calendar-event me-1"></i>{{ listing.updated_at|date:"d.m.Y" }}</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2 mt-auto">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'market:listing_detail' listing.pk %}" class="btn btn-sm btn-outline-light flex-fill">Открыть объявление</a>
+                            <a href="{% url 'market:listing_edit' listing.pk %}" class="btn btn-sm btn-starbaz flex-fill">Редактировать</a>
+                        </div>
+                        <div class="d-flex flex-column flex-sm-row gap-2 my-listings-actions-row">
+                            <form method="post" action="{% url 'market:listing_toggle_status' listing.pk %}" class="flex-fill">
+                                {% csrf_token %}
+                                {% if listing.status == 'active' %}
+                                    <button type="submit" class="btn btn-sm btn-outline-light w-100 my-listings-btn-secondary">
+                                        <i class="bi bi-pause-circle me-1"></i>Снять с публикации
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-light w-100 my-listings-btn-secondary">
+                                        <i class="bi bi-play-circle me-1"></i>Вернуть в публикацию
+                                    </button>
+                                {% endif %}
+                            </form>
+                            {% if user_profile.is_premium and user_profile.premium_boost_credits > 0 and listing.status == 'active' %}
+                                <form method="post" action="{% url 'market:listing_boost' listing.pk %}" class="flex-fill">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-light my-listings-boost-btn w-100 my-listings-btn-secondary">
+                                        <i class="bi bi-arrow-up-circle me-1"></i>В топ ({{ user_profile.premium_boost_credits }})
+                                    </button>
+                                </form>
+                            {% endif %}
+                            <a href="{% url 'market:listing_delete' listing.pk %}" class="btn btn-sm btn-outline-danger flex-fill my-listings-btn-danger">
+                                <i class="bi bi-trash me-1"></i>Удалить
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-muted">У вас пока нет объявлений.</p>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/my_listings.css' %}">
+<script src="{% static 'market/js/my_listings.js' %}"></script>
+{% endblock %}

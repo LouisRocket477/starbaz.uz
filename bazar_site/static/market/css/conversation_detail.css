@@ -1,0 +1,6 @@
+/* Страница чата по объявлению — собирает модули из pages/conversation/ */
+@import url('pages/conversation/layout.css');
+@import url('pages/conversation/cards.css');
+@import url('pages/conversation/messages.css');
+@import url('pages/conversation/forms.css');
+@import url('pages/conversation/review.css');

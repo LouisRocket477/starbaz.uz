@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "market/_support_nav.html" %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card bg-dark border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h1 class="h4 mb-3">Создать новый тикет</h1>
+                <form method="post" enctype="multipart/form-data" class="mb-1">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Тип обращения</label>
+                        <select name="request_type" class="form-select form-select-sm">
+                            <option value="product" {% if initial_request_type == "product" %}selected{% endif %}>Найти / запросить товар</option>
+                            <option value="seller" {% if initial_request_type == "seller" %}selected{% endif %}>Вопрос по продавцу / сделке</option>
+                            <option value="premium" {% if initial_request_type == "premium" %}selected{% endif %}>Премиум / оплата</option>
+                            <option value="bug" {% if initial_request_type == "bug" %}selected{% endif %}>Сообщить о баге / ошибке</option>
+                            <option value="idea" {% if initial_request_type == "idea" %}selected{% endif %}>Предложение по улучшению</option>
+                            <option value="other" {% if initial_request_type == "other" %}selected{% endif %}>Другое</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Кратко о чём (необязательно)</label>
+                        <input type="text" name="subject" class="form-control form-control-sm" placeholder="Например: Нужен редкий корабль / Ошибка при оплате" value="{{ initial_subject }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сообщение</label>
+                        <textarea name="message" rows="5" class="form-control form-control-sm" placeholder="Опишите запрос или проблему максимально понятно" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Скриншот (опционально)</label>
+                        <input type="file" name="screenshot" class="form-control form-control-sm" accept="image/*">
+                        <div class="form-text small text-muted">
+                            Прикрепите изображение ошибки, переписки или другой важной информации. Можно отправить тикет и без файла.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Как с вами связаться?</label>
+                        <input type="text" name="contact" class="form-control form-control-sm" placeholder="Discord, Telegram, e‑mail или другая ссылка">
+                    </div>
+                    <button type="submit" class="btn btn-starbaz btn-sm">Отправить тикет</button>
+                </form>
+                <p class="small text-muted mb-0">
+                    После отправки тикет появится в разделе <a href="{% url 'market:support_my' %}">«Мои тикеты»</a>, где будут видны статусы и ответы администрации.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

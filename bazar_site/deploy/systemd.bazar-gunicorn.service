@@ -1,0 +1,24 @@
+[Unit]
+Description=Gunicorn for BAZAR Django project
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/bazar_site
+Environment="DJANGO_SETTINGS_MODULE=bazar_site.settings_prod"
+Environment="BAZAR_DB_NAME=bazar"
+Environment="BAZAR_DB_USER=bazar"
+Environment="BAZAR_DB_PASSWORD=CHANGE_ME_STRONG_PASSWORD"
+Environment="BAZAR_DB_HOST=127.0.0.1"
+Environment="BAZAR_DB_PORT=5432"
+Environment="BAZAR_REDIS_URL=redis://127.0.0.1:6379/0"
+
+ExecStart=/srv/bazar_site/venv/bin/gunicorn bazar_site.wsgi:application -c gunicorn.conf.py
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

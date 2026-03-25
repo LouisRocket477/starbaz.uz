@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="useful-links-hero mb-4">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+        <div>
+            <h1 class="h4 mb-1">Полезные ссылки</h1>
+            <div class="text-muted small">
+                Подборка сервисов и баз данных для Star Citizen.
+            </div>
+        </div>
+        <div class="useful-links-meta small text-muted">
+            <i class="bi bi-box-arrow-up-right"></i>
+            Все ссылки открываются в новой вкладке
+        </div>
+    </div>
+
+    {% if site_settings.useful_links_intro %}
+        <div class="useful-links-intro mt-3">
+            {{ site_settings.useful_links_intro|safe }}
+        </div>
+    {% endif %}
+</div>
+
+{% if links %}
+    <div class="useful-links-grid">
+        {% for l in links %}
+            <a class="useful-link-card" href="{{ l.url }}" target="_blank" rel="noopener noreferrer">
+                <div class="useful-link-card-top">
+                    <div class="useful-link-icon">
+                        <i class="{% if l.icon_class %}{{ l.icon_class }}{% else %}bi bi-link-45deg{% endif %}"></i>
+                    </div>
+                    <div class="useful-link-title">
+                        {{ l.title }}
+                    </div>
+                </div>
+                {% if l.description %}
+                    <div class="useful-link-desc">
+                        {{ l.description }}
+                    </div>
+                {% endif %}
+                <div class="useful-link-foot">
+                    <span class="useful-link-url">{{ l.url|truncatechars:48 }}</span>
+                    <span class="useful-link-go">
+                        Перейти <i class="bi bi-arrow-up-right"></i>
+                    </span>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-muted">Ссылок пока нет. Добавь их в админке в разделе “Полезные ссылки”.</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/useful_links.css' %}">
+{% endblock %}
+

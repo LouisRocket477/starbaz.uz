@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load static price_filters market_extras %}
+
+{% block content %}
+{% if listings %}
+<div class="listing-ticker mb-3">
+    <div class="listing-ticker-inner">
+        {% for item in listings %}
+            <a href="{% url 'market:listing_detail' item.pk %}" class="listing-ticker-item text-decoration-none">
+                <span class="listing-ticker-badge
+                             {% if item.deal_type == 'buy' %}buy
+                             {% elif item.deal_type == 'trade' %}trade
+                             {% else %}sell{% endif %}">
+                    {% if item.deal_type == 'buy' %}Куплю{% elif item.deal_type == 'trade' %}Обмен{% else %}Продам{% endif %}
+                </span>
+                <span class="listing-ticker-title">
+                    {{ item.title|truncatechars:40 }}
+                </span>
+            </a>
+        {% endfor %}
+        {% for item in listings %}
+            <a href="{% url 'market:listing_detail' item.pk %}" class="listing-ticker-item text-decoration-none">
+                <span class="listing-ticker-badge
+                             {% if item.deal_type == 'buy' %}buy
+                             {% elif item.deal_type == 'trade' %}trade
+                             {% else %}sell{% endif %}">
+                    {% if item.deal_type == 'buy' %}Куплю{% elif item.deal_type == 'trade' %}Обмен{% else %}Продам{% endif %}
+                </span>
+                <span class="listing-ticker-title">
+                    {{ item.title|truncatechars:40 }}
+                </span>
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+<div class="row mb-4 g-4 align-items-stretch">
+    <div class="col-md-8 d-flex">
+        <div class="page-hero p-3 p-md-4 text-light w-100 h-100 d-flex flex-column justify-content-between">
+            <h1 class="h3 h2-md mb-3">{{ site_settings.hero_title }}</h1>
+            <p class="mb-4 text-muted">{{ site_settings.hero_subtitle }}</p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <a href="{% url 'market:listing_create' %}" class="btn btn-starbaz btn-lg">Выставить товар</a>
+                <a href="{% url 'market:listing_list' %}" class="btn btn-outline-light btn-lg">Смотреть все объявления</a>
+            </div>
+            <div class="row g-2 small text-muted mb-2">
+                <div class="col-sm-6 d-flex flex-column gap-1">
+                    <div>• Безопасные сделки с гарантом</div>
+                    <div>• Живой общий чат на главной</div>
+                    <div>• Удобный поиск по объявлениям</div>
+                </div>
+                <div class="col-sm-6 d-flex flex-column justify-content-between">
+                    <div class="fw-semibold text-light">
+                        Активных объявлений: <span class="text-success">{{ total_listings }}</span>
+                    </div>
+                    <div class="fw-semibold text-light">
+                        Гарантов на площадке: <span class="text-info">{{ guarantor_count }}</span>
+                    </div>
+                    <div class="fw-semibold text-light">
+                        Совершено сделок: <span class="text-warning">{{ total_deals }}</span>
+                    </div>
+                </div>
+            </div>
+            <p class="small text-muted mb-0">
+                Выберите категорию ниже или воспользуйтесь поиском, чтобы быстро найти нужный товар.
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4 d-none d-md-block">
+        <div class="d-flex flex-column h-100">
+            {% if banners and site_settings.show_home_banner %}
+                <div id="bazarBannerCarousel" class="carousel slide flex-grow-1 mb-3" data-bs-ride="carousel">
+                    <div class="carousel-inner h-100">
+                        {% for banner in banners %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %} h-100">
+                                <div class="d-block w-100" style="aspect-ratio: 4 / 3; border-radius: 1rem; overflow: hidden;">
+                                    {% if banner.link_url %}
+                                        <a href="{{ banner.link_url }}" target="_blank" rel="noopener" class="d-block w-100 h-100">
+                                            <img src="{{ banner.image.url }}" class="d-block w-100 h-100" alt="{{ banner.title|default:'Баннер' }}" style="object-fit: cover;">
+                                        </a>
+                                    {% else %}
+                                        <img src="{{ banner.image.url }}" class="d-block w-100 h-100" alt="{{ banner.title|default:'Баннер' }}" style="object-fit: cover;">
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if banners|length > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#bazarBannerCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#bazarBannerCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="card global-chat-card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h2 class="h6 mb-0">Общий чат</h2>
+                        <div class="d-flex align-items-center gap-1 small">
+                            <span class="global-chat-online-dot"></span>
+                            <span class="text-muted">онлайн: {{ online_count }}</span>
+                        </div>
+                    </div>
+                    <div id="global-chat-messages"
+                         class="global-chat-messages small text-muted"
+                         data-api-url="{% url 'market:global_chat_api' %}">
+                        Загрузка чата...
+                    </div>
+                    <div id="global-chat-reply-preview" class="global-chat-reply-preview d-none small mt-2 mb-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="text-muted">Ответ для <span class="text-light fw-semibold" id="global-chat-reply-user"></span></div>
+                                <div class="text-muted" id="global-chat-reply-snippet"></div>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white btn-sm" id="global-chat-reply-cancel" aria-label="Отменить"></button>
+                        </div>
+                    </div>
+                    {% if request.user.is_authenticated %}
+                        <form id="global-chat-form" class="mt-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="reply_to" id="global-chat-reply-to">
+                            <div class="input-group input-group-sm">
+                                <input type="text"
+                                       name="content"
+                                       id="global-chat-input"
+                                       class="form-control"
+                                       maxlength="500"
+                                       placeholder="Напишите сообщение...">
+                                <button class="btn btn-starbaz" type="submit" id="global-chat-submit">Отправить</button>
+                            </div>
+                            <small id="global-chat-cooldown"
+                                   class="small text-muted d-block mt-1"
+                                   style="min-height: 1rem;"></small>
+                        </form>
+                    {% else %}
+                        <p class="small text-muted mt-2 mb-1">
+                            В общий чат могут писать только авторизованные пользователи.
+                        </p>
+                        <a href="{% url 'account_login' %}" class="btn btn-starbaz btn-sm w-100">Войти</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="home-listings-header d-flex align-items-center justify-content-between gap-3 flex-wrap mb-2">
+            <h2 class="home-section-title mb-0">Новые объявления</h2>
+            <form method="get"
+                  action="{% url 'market:listing_list' %}"
+                  class="home-search-form listing-filters-form"
+                  data-live-search-url="{% url 'market:home_live_search' %}">
+                <div class="listing-filters-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="q" placeholder="Поиск по объявлениям" autocomplete="off">
+                    <button type="submit" class="listing-filters-search-btn">Найти</button>
+                </div>
+            </form>
+            <a href="{% url 'market:listing_list' %}" class="home-all-listings-link">Все объявления →</a>
+        </div>
+        <div class="listing-cards-grid home-listing-cards-grid" id="home-listings-grid">
+            {% include "market/_home_listings_grid.html" %}
+        </div>
+    </div>
+</div>
+
+{% if site_settings.show_news_block and news_items %}
+<div id="news" class="row mb-4">
+    <div class="col-12">
+        <div class="card home-news-wrapper">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Новости и соцсети</h2>
+                    <span class="small text-muted">Актуальные обновления площадки и каналы связи</span>
+                </div>
+                <div class="row gy-3 gx-3">
+                    {% for item in news_items %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="home-news-card h-100 d-flex flex-column">
+                                <div class="d-flex align-items-center justify-content-between mb-2 small text-muted">
+                                    <span class="home-news-source-pill d-inline-flex align-items-center gap-1">
+                                        {% if item.source == "telegram" %}
+                                            <i class="bi bi-telegram news-source-icon news-source-telegram"></i>
+                                            <span>Telegram</span>
+                                        {% elif item.source == "instagram" %}
+                                            <i class="bi bi-instagram news-source-icon news-source-instagram"></i>
+                                            <span>Instagram</span>
+                                        {% elif item.source == "twitch" %}
+                                            <i class="bi bi-twitch news-source-icon news-source-twitch"></i>
+                                            <span>Twitch</span>
+                                        {% elif item.source == "vk" %}
+                                            <i class="bi bi-twitter news-source-icon news-source-vk"></i>
+                                            <span>VK</span>
+                                        {% elif item.source == "youtube" %}
+                                            <i class="bi bi-youtube news-source-icon news-source-youtube"></i>
+                                            <span>YouTube</span>
+                                        {% else %}
+                                            <i class="bi bi-link-45deg news-source-icon"></i>
+                                            <span>Ссылка</span>
+                                        {% endif %}
+                                    </span>
+                                    <span class="home-news-date text-muted small">{{ item.created_at|date:"d.m.Y H:i" }}</span>
+                                </div>
+                                {% if item.preview_image %}
+                                    <a href="{{ item.link_url }}" target="_blank" rel="noopener" class="home-news-image mb-2">
+                                        <img src="{{ item.preview_image.url }}" alt="{{ item.title }}" class="w-100 h-100">
+                                    </a>
+                                {% endif %}
+                                <h3 class="home-news-title mb-1">{{ item.title }}</h3>
+                                {% if item.text %}
+                                    <p class="home-news-text mb-2">
+                                        {{ item.text|truncatechars:110 }}
+                                    </p>
+                                {% endif %}
+                                <a href="{{ item.link_url }}" target="_blank" rel="noopener" class="home-news-link mt-auto">
+                                    Открыть в {{ item.get_source_display }}
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/home.css' %}">
+<link rel="stylesheet" href="{% static 'market/css/listing_list.css' %}">
+<script src="{% static 'market/js/home_live_search.js' %}"></script>
+<script src="{% static 'market/js/home.js' %}"></script>
+{% endblock %}
+

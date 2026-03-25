@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% load static market_extras %}
+
+{% block content %}
+<div class="profile-edit-mobile-pad">
+    <div class="profile-edit-grid">
+        <div class="card mb-3 profile-edit-header">
+            <div class="card-body d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}"
+                             alt="Аватар"
+                             class="rounded-circle js-avatar-zoom"
+                             style="width: 96px; height: 96px; object-fit: cover; cursor: zoom-in;"
+                             data-full-url="{{ profile.avatar.url }}">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 96px; height: 96px;">
+                            <span class="fw-bold fs-4">{{ request.user.username|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                    </div>
+                    <div>
+                    <h1 class="h5 mb-1 d-flex flex-column align-items-start gap-1">
+                        <span class="d-flex align-items-center gap-2">
+                            <span>{{ request.user.username }}</span>
+                            {% if profile.is_premium %}
+                                <span class="badge bg-warning text-dark d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-gem"></i> Премиум
+                                </span>
+                            {% endif %}
+                        </span>
+                        {% if profile.is_guarantor %}
+                            <span class="guarantor-label">Гарант</span>
+                        {% endif %}
+                        {% if profile.is_streamer %}
+                            <span class="streamer-badge-animated">Стример</span>
+                        {% endif %}
+                    </h1>
+                    <div class="small text-muted">ID: {{ request.user.id }}</div>
+                    {% if profile.game_nickname %}
+                        <div class="small text-muted">Ник в игре: <a href="{{ profile.game_nickname|rsi_citizen_url }}" target="_blank" rel="noopener" class="link-success text-decoration-underline">{{ profile.game_nickname }}</a></div>
+                    {% endif %}
+                    <div class="small text-muted">Email: {{ request.user.email }}</div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                    {% if profile.is_premium %}
+                        <div class="small text-muted w-100 text-end">
+                            {% if profile.premium_until %}
+                                до {{ profile.premium_until|date:"d.m.Y" }}
+                                · осталось {{ profile.premium_until|timeuntil }}
+                            {% else %}
+                                бессрочно
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <a href="{% url 'market:premium_options' %}" class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-gem"></i>
+                        {% if profile.is_premium %}Продлить премиум{% else %}Премиум{% endif %}
+                    </a>
+                    {% if profile.org_url %}
+                        <a href="{{ profile.org_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="Организация RSI">
+                            <i class="bi bi-people-fill"></i>
+                        </a>
+                    {% endif %}
+                    {% if profile.telegram %}
+                        <a href="{{ profile.telegram }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="Telegram">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                    {% endif %}
+                    {% if profile.discord %}
+                        <a href="{{ profile.discord }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="Discord">
+                            <i class="bi bi-discord"></i>
+                        </a>
+                    {% endif %}
+                    {% if profile.steam %}
+                        <a href="{{ profile.steam }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="Steam">
+                            <i class="bi bi-steam"></i>
+                        </a>
+                    {% endif %}
+                    {% if profile.youtube %}
+                        <a href="{{ profile.youtube }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="YouTube">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                    {% endif %}
+                    {% if profile.twitch %}
+                        <a href="{{ profile.twitch }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="Twitch">
+                            <i class="bi bi-twitch"></i>
+                        </a>
+                    {% endif %}
+                    {% if profile.instagram %}
+                        <a href="{{ profile.instagram }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                    {% endif %}
+                    {% if profile.vk %}
+                        <a href="{{ profile.vk }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="VK">
+                            <i class="bi bi-link-45deg"></i>
+                        </a>
+                    {% endif %}
+                    {% if profile.extra_link %}
+                        <a href="{{ profile.extra_link }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="Дополнительная ссылка">
+                            <i class="bi bi-globe2"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-edit-sticky">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="profile-edit-actions">
+                        <button type="submit" form="profile-edit-form" class="btn btn-starbaz">
+                            Сохранить изменения
+                        </button>
+                        <a href="{% url 'market:seller_detail' request.user.id %}" class="btn btn-outline-light">
+                            Профиль
+                        </a>
+                    </div>
+                    <div class="profile-edit-help mt-2">
+                        Быстрый доступ — чтобы не искать нужное в меню.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="h6 mb-3">Быстрые действия</h2>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-outline-light btn-sm" href="{% url 'market:my_listings' %}">Мои объявления</a>
+                        <a class="btn btn-outline-light btn-sm" href="{% url 'market:listing_create' %}">Выставить товар</a>
+                        <a class="btn btn-outline-light btn-sm" href="{% url 'market:conversation_list' %}">Чат</a>
+                        <a class="btn btn-outline-light btn-sm" href="{% url 'market:support' %}">Поддержка</a>
+                        {% if nav_user_profile and nav_user_profile.is_admin_whitelist and request.user.is_staff %}
+                            <a class="btn btn-starbaz btn-sm" href="/admin/">Админ панель</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Премиум-кнопка теперь только в шапке профиля (без дублей). #}
+        </div>
+
+        <div class="card profile-edit-compact">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
+                    <h2 class="h6 mb-0">Настройки профиля</h2>
+                    <button type="submit" form="profile-edit-form" class="btn btn-starbaz btn-sm">
+                        Сохранить
+                    </button>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="profile-edit-form">
+                    {% csrf_token %}
+                    <div class="accordion profile-edit-accordion" id="profileEditAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="secMainH">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#secMain" aria-expanded="true" aria-controls="secMain">
+                                    Основное
+                                </button>
+                            </h2>
+                            <div id="secMain" class="accordion-collapse collapse show" aria-labelledby="secMainH" data-bs-parent="#profileEditAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Ник в игре</label>
+                                            <input type="text" name="game_nickname" class="form-control" value="{{ profile.game_nickname }}">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Предпочитаемый язык</label>
+                                            <input type="text" name="preferred_language" class="form-control" value="{{ profile.preferred_language }}" placeholder="Напр.: английский, русский">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Оператор</label>
+                                            <input type="text" name="operator" class="form-control" value="{{ profile.operator }}" placeholder="Название организации или корпорации">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Время работы</label>
+                                            <input type="text" name="working_hours" class="form-control" value="{{ profile.working_hours }}" placeholder="Напр.: Я онлайн в основном по UTC +13 часов">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="secOrgH">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#secOrg" aria-expanded="false" aria-controls="secOrg">
+                                    Организация RSI
+                                </button>
+                            </h2>
+                            <div id="secOrg" class="accordion-collapse collapse" aria-labelledby="secOrgH" data-bs-parent="#profileEditAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label">Ссылка на организацию RSI</label>
+                                            <input type="text" name="org_url" class="form-control" value="{{ profile.org_url }}" placeholder="Напр.: https://robertsspaceindustries.com/orgs/INM">
+                                            <div class="form-text">Появится отдельный кружок‑ссылка на карточке продавца.</div>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">Логотип организации (прямая ссылка на PNG)</label>
+                                            <input type="text" name="org_logo_url" class="form-control" value="{{ profile.org_logo_url }}" placeholder="Напр.: https://robertsspaceindustries.com/media/.../logo/INM-Logo.png">
+                                            <div class="form-text">PNG будет показан в кружке вместо стандартной иконки.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="secAvatarH">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#secAvatar" aria-expanded="false" aria-controls="secAvatar">
+                                    Аватар
+                                </button>
+                            </h2>
+                            <div id="secAvatar" class="accordion-collapse collapse" aria-labelledby="secAvatarH" data-bs-parent="#profileEditAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-3 align-items-start">
+                                        <div class="col-12 col-lg-7">
+                                            <label class="form-label d-block mb-1">Аватар</label>
+                                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                                <label for="avatar-input" class="btn btn-outline-light btn-sm mb-0">
+                                                    Выбрать файл
+                                                    <input type="file" id="avatar-input" name="avatar" accept="image/*" class="visually-hidden">
+                                                </label>
+                                                <span class="small text-muted" id="avatar-input-label">Файл не выбран</span>
+                                            </div>
+                                            <div class="form-text">Можно загрузить картинку. Справа — превью: как будет выглядеть после сохранения.</div>
+                                        </div>
+                                        <div class="col-12 col-lg-5">
+                                            <div class="profile-avatar-preview">
+                                                {% if profile.avatar %}
+                                                    <img
+                                                        id="profile-avatar-preview-img"
+                                                        src="{{ profile.avatar.url }}"
+                                                        alt="Превью аватара"
+                                                        data-original-src="{{ profile.avatar.url }}"
+                                                    >
+                                                {% else %}
+                                                    <div
+                                                        id="profile-avatar-preview-fallback"
+                                                        class="profile-avatar-preview-fallback"
+                                                        data-original-initial="{{ request.user.username|first|upper }}"
+                                                    >
+                                                        {{ request.user.username|first|upper }}
+                                                    </div>
+                                                    <img
+                                                        id="profile-avatar-preview-img"
+                                                        src=""
+                                                        alt="Превью аватара"
+                                                        class="d-none"
+                                                        data-original-src=""
+                                                    >
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="secSocialH">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#secSocial" aria-expanded="false" aria-controls="secSocial">
+                                    Соцсети и ссылки
+                                </button>
+                            </h2>
+                            <div id="secSocial" class="accordion-collapse collapse" aria-labelledby="secSocialH" data-bs-parent="#profileEditAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Telegram</label>
+                                            <input type="text" name="telegram" class="form-control" value="{{ profile.telegram }}" placeholder="@nickname или ссылка">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Discord</label>
+                                            <input type="text" name="discord" class="form-control" value="{{ profile.discord }}" placeholder="nickname#0000 или ссылка">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Steam</label>
+                                            <input type="text" name="steam" class="form-control" value="{{ profile.steam }}" placeholder="Ссылка на Steam профиль">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">YouTube</label>
+                                            <input type="text" name="youtube" class="form-control" value="{{ profile.youtube }}" placeholder="Ссылка на YouTube‑канал">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Twitch</label>
+                                            <input type="text" name="twitch" class="form-control" value="{{ profile.twitch }}" placeholder="Ссылка на Twitch‑канал">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Instagram</label>
+                                            <input type="text" name="instagram" class="form-control" value="{{ profile.instagram }}" placeholder="Ссылка на профиль Instagram">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">VK</label>
+                                            <input type="text" name="vk" class="form-control" value="{{ profile.vk }}" placeholder="Ссылка на профиль или сообщество ВКонтакте">
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <label class="form-label">Дополнительная ссылка</label>
+                                            <input type="text" name="extra_link" class="form-control" value="{{ profile.extra_link }}" placeholder="Любая дополнительная ссылка">
+                                            <div class="form-text">Иконка с глобусом под соцсетями.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="profile-edit-mobile-save">
+    <button type="submit" form="profile-edit-form" class="btn btn-starbaz w-100">
+        Сохранить изменения
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/profile_edit.css' %}">
+<script src="{% static 'market/js/profile.js' %}"></script>
+{% endblock %}

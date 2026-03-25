@@ -1,0 +1,186 @@
+/* ===== Сообщения — пузырьки ===== */
+
+.conv-messages-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 0.75rem;
+}
+
+#messages-box {
+    max-height: 380px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) rgba(15, 23, 42, 0.8);
+}
+#messages-box::-webkit-scrollbar {
+    width: 6px;
+}
+#messages-box::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 999px;
+}
+#messages-box::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 999px;
+}
+#messages-box::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.55);
+}
+
+.conv-empty {
+    color: #64748b;
+    font-size: 0.8rem;
+    padding: 2rem 0.5rem;
+    text-align: center;
+    margin: 0;
+}
+
+.conv-msg {
+    margin-bottom: 0.75rem;
+}
+.conv-msg:last-child {
+    margin-bottom: 0;
+}
+
+.conv-msg-me {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.conv-msg-them {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.conv-msg-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+    width: 100%;
+}
+.conv-msg-me .conv-msg-head {
+    justify-content: flex-end;
+}
+.conv-msg-them .conv-msg-head {
+    justify-content: flex-start;
+}
+
+.conv-msg-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.conv-msg-avatar-placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #475569, #334155);
+    color: #e2e8f0;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+.conv-msg-meta {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
+.conv-bubble-wrap {
+    max-width: 85%;
+}
+
+.conv-bubble {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    border-radius: 1rem;
+    word-break: break-word;
+}
+.conv-msg-me .conv-bubble {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.35), rgba(56, 189, 248, 0.25));
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #e2e8f0;
+    border-top-right-radius: 0.25rem;
+}
+.conv-msg-them .conv-bubble {
+    background: rgba(51, 65, 85, 0.6);
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    color: #e2e8f0;
+    border-top-left-radius: 0.25rem;
+}
+
+.conv-deal-line {
+    color: #e2e8f0;
+    font-size: 0.9rem;
+}
+.conv-deal-sum {
+    display: inline-block;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #facc15;
+    text-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+    letter-spacing: 0.02em;
+    margin-left: 0.15rem;
+}
+.conv-deal-remaining {
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+.conv-deal-remaining strong {
+    color: #e2e8f0;
+}
+
+.conv-bubble-purchase {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(148, 163, 184, 0.06)) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+}
+.conv-purchase-header {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #7dd3fc;
+    margin-bottom: 0.5rem;
+}
+.conv-bubble-icon {
+    color: #38bdf8;
+}
+.conv-purchase-details {
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+.conv-purchase-waiting {
+    color: #facc15;
+    font-size: 0.85rem;
+}
+
+.conv-bubble-trade {
+    padding: 0.75rem 1rem !important;
+    min-width: 260px;
+    max-width: 360px;
+    border-left: 3px solid rgba(56, 189, 248, 0.6) !important;
+    line-height: 1.6;
+}
+.conv-msg-me .conv-bubble-trade {
+    border-left: none !important;
+    border-right: 3px solid rgba(34, 197, 94, 0.6) !important;
+}
+
+.conv-bubble-image img {
+    max-height: 220px;
+    object-fit: contain;
+    cursor: zoom-in;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(71, 85, 105, 0.5);
+}
+.conv-bubble-image {
+    display: inline-block;
+}

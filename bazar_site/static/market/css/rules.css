@@ -1,0 +1,24 @@
+.rules-page {
+    margin-top: 0.25rem;
+}
+
+.rules-card {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.rules-title {
+    letter-spacing: 0.2px;
+}
+
+.rules-page h2 {
+    color: #e5e7eb;
+}
+
+.rules-page ul {
+    margin-bottom: 0.75rem;
+    padding-left: 1.15rem;
+}
+
+.rules-page li {
+    margin-bottom: 0.35rem;
+}

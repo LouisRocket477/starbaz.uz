@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8 col-xl-7">
+        <h1 class="h4 mb-3">
+            {% if listing %}
+                Редактировать объявление
+            {% else %}
+                Выставить новый товар
+            {% endif %}
+        </h1>
+        <p class="text-muted small mb-3">
+            Заполните карточку объявления: укажите, <strong>продаёте</strong> вы товар или <strong>покупаете</strong>,
+            опишите его и добавьте медиа. Поля с пометкой * — обязательные.
+        </p>
+        <ol class="listing-steps mb-4" id="listing-steps">
+            <li class="listing-steps-item listing-steps-item-active" data-step="1">Тип и название</li>
+            <li class="listing-steps-item" data-step="2">Цена и формат сделки</li>
+            <li class="listing-steps-item" data-step="3">Дополнительная информация</li>
+            <li class="listing-steps-item" data-step="4">Медиа и проверка</li>
+        </ol>
+        <form method="post" enctype="multipart/form-data" class="card p-3 listing-form">
+            {% csrf_token %}
+            {% if errors %}
+                <div class="alert alert-danger py-2">
+                    {% for err in errors %}
+                        <div>{{ err }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="mb-3" id="listing-step-1">
+                <label class="form-label d-block mb-1">Тип объявления *</label>
+                {% with current_type=listing.deal_type|default_if_none:'sell' %}
+                <div class="btn-group w-100" role="group" aria-label="Тип объявления">
+                    <input type="radio"
+                           class="btn-check"
+                           name="deal_type"
+                           id="deal_type_sell"
+                           value="sell"
+                           {% if current_type == 'sell' %}checked{% endif %}>
+                    <label class="btn btn-outline-light" for="deal_type_sell">
+                        Продаю
+                    </label>
+                    <input type="radio"
+                           class="btn-check"
+                           name="deal_type"
+                           id="deal_type_buy"
+                           value="buy"
+                           {% if current_type == 'buy' %}checked{% endif %}>
+                    <label class="btn btn-outline-light" for="deal_type_buy">
+                        Покупаю
+                    </label>
+                    <input type="radio"
+                           class="btn-check"
+                           name="deal_type"
+                           id="deal_type_trade"
+                           value="trade"
+                           {% if current_type == 'trade' %}checked{% endif %}>
+                    <label class="btn btn-outline-light" for="deal_type_trade">
+                        Обмен
+                    </label>
+                </div>
+                {% endwith %}
+                <div class="form-text" id="deal-type-help">
+                    «Продаю» — обычное объявление о продаже товара.
+                </div>
+            </div>
+            <h2 class="h6 text-uppercase text-muted mt-2 mb-2">Основная информация</h2>
+            <div class="mb-3">
+                <label class="form-label">Название товара *</label>
+                <input type="text" name="title" id="listing-title" class="form-control" value="{{ listing.title|default_if_none:'' }}" required
+                       placeholder="Например: Шлем Aves (новый), набор из 3 шт.">
+                <div class="form-text">Сделайте название конкретным: модель, состояние, формат (набор, поштучно и т.п.).</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Категория *</label>
+                <select name="category" id="listing-category" class="form-select" required>
+                    <option value="">Выберите категорию</option>
+                    {% for category in categories %}
+                        <option value="{{ category.pk }}" {% if listing and listing.category_id == category.pk %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Описание товара *</label>
+                <textarea name="description" class="form-control" rows="5" placeholder="Кратко опишите состояние, комплектацию, ограничения, условия передачи и оплаты" required>{{ listing.description|default_if_none:'' }}</textarea>
+                <div class="form-text">Чётко опишите, что входит в сделку, есть ли ограничения по времени/региону и что важно знать покупателю.</div>
+            </div>
+
+            <h2 class="h6 text-uppercase text-muted mt-3 mb-2" id="listing-step-2">Цена и формат сделки</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Рыночная цена (в AUEC) *</label>
+                    <input
+                        type="text"
+                        name="original_price"
+                        id="listing-original-price"
+                        class="form-control"
+                        value="{% if listing %}{{ original_price_display }}{% endif %}"
+                        required
+                        placeholder="Например: 123 000"
+                    >
+                    <div class="form-text">Можно вводить цену с пробелами — система сама всё приведёт к нужному формату.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Цена со скидкой (в AUEC)</label>
+                    <input
+                        type="text"
+                        name="price"
+                        id="listing-price"
+                        class="form-control"
+                        value="{% if listing and listing.original_price and listing.price < listing.original_price %}{{ price_display }}{% endif %}"
+                        placeholder="Оставьте пустым, если скидки нет"
+                    >
+                    {% if listing and listing.original_price and listing.price < listing.original_price %}
+                        <div class="small text-muted mt-1">
+                            Текущая скидка: {{ listing.discount_percent }}% от рыночной цены.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3 form-check mt-3">
+                <input class="form-check-input" type="checkbox" id="barter_allowed" name="barter_allowed" {% if listing and listing.barter_allowed %}checked{% endif %}>
+                <label class="form-check-label" for="barter_allowed">
+                    Готов к обмену (бартер)
+                </label>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">На что готовы обменять</label>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for category in categories %}
+                        <div>
+                            <input
+                                type="checkbox"
+                                class="btn-check"
+                                name="barter_for"
+                                id="barter_for_{{ category.pk }}"
+                                value="{{ category.pk }}"
+                                {% if listing and category in listing.barter_for.all %}checked{% endif %}
+                            >
+                            <label class="btn btn-outline-light btn-sm" for="barter_for_{{ category.pk }}">
+                                {{ category.name }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-2">
+                    <input type="text"
+                           name="barter_custom"
+                           class="form-control form-control-sm"
+                           value="{{ listing.barter_custom|default_if_none:'' }}"
+                           placeholder="Свой вариант (или несколько через запятую)">
+                </div>
+                <div class="form-text">Можно выбрать категории выше и/или вписать свой вариант.</div>
+            </div>
+
+            <h2 class="h6 text-uppercase text-muted mt-3 mb-2" id="listing-step-3">Дополнительная информация</h2>
+            <div class="mb-3" id="listing-quantity-container">
+                <div class="listing-form-quantity-section" data-for-deal-types="sell trade">
+                    <div class="form-check mb-2" id="in_stock_row">
+                        <input class="form-check-input" type="checkbox" id="in_stock" name="in_stock" {% if not listing or listing.in_stock %}checked{% endif %}>
+                        <label class="form-check-label" for="in_stock">Товар в наличии</label>
+                    </div>
+                </div>
+                <div class="row align-items-center g-2">
+                    <div class="col-auto">
+                        <label class="form-label mb-0" id="quantity-label" for="quantity">Количество</label>
+                    </div>
+                    <div class="col-auto listing-form-qty-input-wrap">
+                        <input type="number" name="quantity" id="quantity" class="form-control form-control-sm"
+                               min="0" value="{{ listing.quantity|default_if_none:'' }}"
+                               placeholder="—">
+                    </div>
+                    <div class="col-auto small text-muted">шт.</div>
+                </div>
+                <div class="form-text" id="quantity-helptext">Укажите количество, если товар в наличии. Можно оставить пустым.</div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Источник</label>
+                    <input type="text" name="source" class="form-control" value="{{ listing.source|default_if_none:'' }}" placeholder="Напр.: Разграблено, Куплено, Крафт">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Наличие</label>
+                    <input type="text" name="availability" class="form-control" value="{{ listing.availability|default_if_none:'' }}" placeholder="Напр.: Готово к самовывозу, Под заказ">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Местоположение</label>
+                    <input type="text" name="location" class="form-control" value="{{ listing.location|default_if_none:'' }}" placeholder="Напр.: Nyx Gateway (Pyro)">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Звёздная система</label>
+                    <input type="text" name="star_system" class="form-control" value="{{ listing.star_system|default_if_none:'' }}" placeholder="Напр.: Пиро">
+                </div>
+            </div>
+
+            <h2 class="h6 text-uppercase text-muted mt-3 mb-2" id="listing-step-4">Медиа</h2>
+            {% if listing and listing.images.all %}
+                <div class="mb-3">
+                    <label class="form-label">Текущие фотографии</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for image in listing.images.all %}
+                            <div class="listing-form-image-thumb">
+                                <img src="{{ image.image.url }}" alt="" class="listing-form-image-thumb-img img-thumbnail mb-1">
+                                <div class="mb-1">
+                                    <input class="d-none" type="radio" name="main_image" value="{{ image.pk }}" id="main_{{ image.pk }}" {% if image.is_main %}checked{% endif %}>
+                                    <label for="main_{{ image.pk }}" class="star-label" title="Сделать главной">★</label>
+                                </div>
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm w-100 delete-image-btn"
+                                        data-image-id="{{ image.pk }}">
+                                    Удалить
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            <div class="mb-3">
+                <label class="form-label d-block mb-1">Фотографии товара</label>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <label for="images-input" class="btn btn-outline-light btn-sm mb-0">
+                        Прикрепить фото
+                        <input type="file"
+                               id="images-input"
+                               name="images"
+                               accept="image/*"
+                               multiple
+                               class="visually-hidden">
+                    </label>
+                    <span class="small text-muted" id="images-input-label">
+                        Файлы не выбраны
+                    </span>
+                </div>
+                <div class="form-text text-light" style="opacity: 0.85;">
+                    Можно загрузить несколько изображений. Поддерживаются стандартные форматы (JPG, PNG, WEBP и др.), изображения автоматически обрезаются под квадрат.
+                </div>
+                <div id="images-preview" class="d-flex flex-wrap gap-2 mt-2"></div>
+            </div>
+            {% if not listing %}
+            <div class="mb-3">
+                <label class="form-label d-block">Проверка на бота</label>
+                <div class="form-control mb-2 bg-transparent border-secondary text-light">
+                    {{ captcha_question }}
+                </div>
+                <input type="text"
+                       name="captcha_answer"
+                       class="form-control"
+                       placeholder="Введите результат примера">
+            </div>
+            {% endif %}
+            <div class="d-flex justify-content-end mt-2">
+                <button type="submit" class="btn btn-starbaz">
+                {% if listing %}Сохранить изменения{% else %}Создать объявление{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-4 col-xl-5">
+        <div class="card mb-3 listing-preview-card">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Превью объявления</h2>
+                <div class="listing-preview-inner d-flex flex-column h-100">
+                    <div class="listing-preview-image mb-1 rounded-3 overflow-hidden bg-black-50 d-flex align-items-center justify-content-center">
+                        <img src="{% static 'market/images/listing-default.png' %}"
+                             alt="Превью товара"
+                             class="listing-preview-image-img"
+                             id="listing-preview-image-default">
+                    </div>
+                    <p class="small text-muted mb-2">
+                        Если вы не загрузите фото, будет использована эта картинка по умолчанию.
+                    </p>
+                    <div class="d-flex flex-column flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                            <span class="fw-semibold listing-card-title" id="listing-preview-title">Название товара</span>
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="badge bg-warning text-dark d-none" id="listing-preview-deal-badge">Продаю</span>
+                                <span class="badge bg-secondary d-none" id="listing-preview-barter-badge">Бартер</span>
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-1" id="listing-preview-category">Категория не выбрана</p>
+                        <p class="small text-muted mb-1" id="listing-preview-description">
+                            Краткое описание товара появится здесь.
+                        </p>
+                        <div class="mt-auto">
+                            <p class="card-text fw-bold mb-0 d-flex align-items-baseline gap-2 price-line">
+                                <span id="listing-preview-price-original-wrapper" class="text-muted text-decoration-line-through d-none">
+                                    <span id="listing-preview-price-original">0</span>
+                                    <span class="price-currency">AUEC</span>
+                                </span>
+                                <span id="listing-preview-price-current-wrapper">
+                                    <span id="listing-preview-price-current">0</span>
+                                    <span class="price-currency">AUEC</span>
+                                </span>
+                                <span id="listing-preview-discount-badge" class="badge bg-success d-none"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Как оформить объявление, чтобы вам быстрее написали</h2>
+                <ul class="small text-muted mb-3 ps-3">
+                    <li class="mb-1"><strong>Чёткий заголовок</strong> — укажите тип товара, редкость и ключевую характеристику (например: «Корабль Cutlass Black LTI»).</li>
+                    <li class="mb-1"><strong>Описание по пунктам</strong> — состояние, что входит в комплект, важные оговорки по сделке.</li>
+                    <li class="mb-1"><strong>Реалистичная цена</strong> — ориентируйтесь на рыночную стоимость, а скидку объясните в описании.</li>
+                    <li class="mb-1"><strong>Фото и видео</strong> значительно повышают доверие и количество откликов.</li>
+                </ul>
+                <h2 class="h6 mb-2">Безопасная сделка</h2>
+                <ul class="small text-muted ps-3 mb-0">
+                    <li class="mb-1">Не отправляйте предоплату незнакомым людям без гаранта.</li>
+                    <li class="mb-1">Используйте <strong>гаранта</strong>, если сделка крупная или есть сомнения.</li>
+                    <li class="mb-1">Общайтесь только через встроенный чат — так проще решить спорные ситуации.</li>
+                </ul>
+            </div>
+        </div>
+        {% if user_profile %}
+        <div class="card">
+            <div class="card-body small">
+                <h2 class="h6 mb-2">Поднятие объявления в топ</h2>
+                {% if user_profile.is_premium %}
+                    {% if user_profile.premium_boost_credits > 0 %}
+                        <p class="mb-1 text-success">
+                            У вас есть <strong>{{ user_profile.premium_boost_credits }}</strong> поднятий в топ.
+                        </p>
+                        <p class="mb-0 text-muted">
+                            Используйте их в разделе «Мои объявления» кнопкой «Поднять в топ» — объявление выделится золотой рамкой и закрепится вверху на 24 часа.
+                        </p>
+                    {% else %}
+                        <p class="mb-1 text-warning">
+                            Премиум активен, но доступных поднятий сейчас нет.
+                        </p>
+                        <p class="mb-0 text-muted">
+                            Если хотите увеличить лимит поднятий, отправьте запрос в <a href="{% url 'market:support_new' %}">поддержку</a>.
+                        </p>
+                    {% endif %}
+                {% else %}
+                    <p class="mb-1 text-muted">
+                        Поднятие объявлений в топ доступно премиум‑пользователям.
+                    </p>
+                    <a href="{% url 'market:premium_options' %}" class="btn btn-sm btn-starbaz w-100">
+                        Приобрести премиум и поднятия в топ
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/listing_form.css' %}">
+<script src="{% static 'market/js/listing_form.js' %}"></script>
+{% endblock %}
+

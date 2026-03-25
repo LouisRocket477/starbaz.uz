@@ -1,0 +1,9 @@
+ .ban-wrapper {
+     min-height: 60vh;
+ }
+
+ .ban-title {
+     letter-spacing: 0.2em;
+     text-transform: uppercase;
+ }
+

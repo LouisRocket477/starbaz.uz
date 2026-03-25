@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card p-4 p-md-5 text-center">
+            <h1 class="h4 mb-3 text-warning">Слишком много запросов</h1>
+            <p class="text-muted mb-3">
+                {{ message }}
+            </p>
+            <p class="small text-muted mb-4">
+                Если вы видите это сообщение часто — подождите немного и попробуйте снова.
+                Если проблема не исчезает, свяжитесь с администрацией проекта.
+            </p>
+            <a href="{% url 'market:home' %}" class="btn btn-starbaz">
+                На главную
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

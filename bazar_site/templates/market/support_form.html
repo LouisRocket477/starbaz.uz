@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9 col-xl-8">
+        <div class="support-actions-grid mb-3">
+            <a href="#new-ticket" class="support-action-card">
+                <div class="support-action-icon">
+                    <i class="bi bi-chat-square-dots-fill"></i>
+                </div>
+                <div class="support-action-text">
+                    <div class="support-action-title">Создать новый тикет</div>
+                    <div class="support-action-subtitle">Запросить товар, сообщить о проблеме или задать вопрос администрации.</div>
+                </div>
+            </a>
+            <a href="#my-tickets" class="support-action-card">
+                <div class="support-action-icon">
+                    <i class="bi bi-inboxes-fill"></i>
+                </div>
+                <div class="support-action-text">
+                    <div class="support-action-title">Мои тикеты</div>
+                    <div class="support-action-subtitle">Следите за статусом обращений и ответами администрации по вашим заявкам.</div>
+                </div>
+            </a>
+            <a href="#support-faq" class="support-action-card">
+                <div class="support-action-icon">
+                    <i class="bi bi-question-circle-fill"></i>
+                </div>
+                <div class="support-action-text">
+                    <div class="support-action-title">Вопросы по сайту</div>
+                    <div class="support-action-subtitle">Быстрые ответы на популярные вопросы о работе BAZAR и правилах.</div>
+                </div>
+            </a>
+        </div>
+
+        <div id="new-ticket" class="card bg-dark border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h1 class="h4 mb-3">Связаться с администрацией проекта</h1>
+                <form method="post" class="mb-1">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Тип обращения</label>
+                        <select name="request_type" class="form-select form-select-sm">
+                            <option value="product">Найти / запросить товар</option>
+                            <option value="bug">Сообщить о баге / ошибке</option>
+                            <option value="idea">Предложение по улучшению</option>
+                            <option value="other" selected>Другое</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Кратко о чём (необязательно)</label>
+                        <input type="text" name="subject" class="form-control form-control-sm" placeholder="Например: Нужен редкий корабль / Ошибка при оплате">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сообщение</label>
+                        <textarea name="message" rows="5" class="form-control form-control-sm" placeholder="Опишите запрос или проблему максимально понятно" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Как с вами связаться?</label>
+                        <input type="text" name="contact" class="form-control form-control-sm" placeholder="Discord, Telegram, e‑mail или другая ссылка">
+                        <div class="form-text">
+                            Если вы авторизованы и оставили в профиле контакты — всё равно можно продублировать здесь удобный способ связи.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-starbaz btn-sm">Создать новый тикет</button>
+                </form>
+                <p class="small text-muted mb-0">
+                    После отправки тикет попадёт в список «Мои тикеты» ниже — там будут видны статусы и ответы администрации.
+                </p>
+            </div>
+        </div>
+
+        {% if request.user.is_authenticated and support_requests %}
+            <div id="my-tickets" class="card bg-dark border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <h2 class="h6 mb-3">Мои тикеты</h2>
+                    <div class="d-flex flex-column gap-3">
+                        {% for item in support_requests %}
+                            <div class="border-start border-secondary ps-3 small">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="text-muted">
+                                        {{ item.created_at|date:"d.m.Y H:i" }} ·
+                                        {{ item.get_request_type_display }}
+                                    </span>
+                                    {% if item.is_resolved %}
+                                        <span class="badge bg-success">Обработано</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">В работе</span>
+                                    {% endif %}
+                                </div>
+                                {% if item.subject %}
+                                    <div class="fw-semibold mb-1">{{ item.subject }}</div>
+                                {% endif %}
+                                <div class="mb-1">{{ item.message }}</div>
+                                {% if item.admin_reply %}
+                                    <div class="mt-2 p-2 rounded-3 bg-gradient" style="background: rgba(15,23,42,0.95); border: 1px solid rgba(56,189,248,0.4);">
+                                        <div class="small text-info fw-semibold mb-1">Ответ администрации:</div>
+                                        <div>{{ item.admin_reply }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="text-muted fst-italic">Ответ администрации пока не добавлен.</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if faqs %}
+            <div id="support-faq" class="card bg-dark border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h6 mb-3">Частые вопросы по сайту</h2>
+                    <div class="accordion accordion-flush" id="supportFaqAccordion">
+                        {% for item in faqs %}
+                            <div class="accordion-item bg-transparent border-secondary">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-transparent text-light small" type="button" data-bs-toggle="collapse" data-bs-target="#faqItem{{ forloop.counter }}" aria-expanded="false" aria-controls="faqItem{{ forloop.counter }}">
+                                        {{ item.question }}
+                                    </button>
+                                </h2>
+                                <div id="faqItem{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#supportFaqAccordion">
+                                    <div class="accordion-body small text-muted">
+                                        {{ item.answer|linebreaks }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/support.css' %}">
+{% endblock %}
+

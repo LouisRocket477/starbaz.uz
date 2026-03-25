@@ -1,0 +1,90 @@
+ .conversation-list .conversation-item {
+     background: rgba(15, 23, 42, 0.96);
+     border-color: rgba(31, 41, 55, 0.9);
+     transition: background 0.15s ease-out, transform 0.15s ease-out, box-shadow 0.15s ease-out;
+ }
+
+ .conversation-list .conversation-item:hover {
+     background: rgba(30, 64, 175, 0.7);
+     transform: translateY(-1px);
+     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
+ }
+
+ .conversation-avatar {
+     width: 40px;
+     height: 40px;
+     border-radius: 999px;
+     background: radial-gradient(circle at 0% 0%, #38bdf8, transparent 60%),
+                 radial-gradient(circle at 100% 100%, #22c55e, transparent 60%),
+                 #020617;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     box-shadow:
+         0 0 0 1px rgba(15, 23, 42, 0.9),
+         0 0 12px rgba(56, 189, 248, 0.7);
+ }
+
+ .conversation-avatar-initial {
+     font-weight: 700;
+     font-size: 0.9rem;
+     color: #e5e7eb;
+ }
+
+ .blink-badge {
+     animation: blink 1s infinite;
+ }
+
+ @keyframes blink {
+     0%, 50%, 100% { opacity: 1; }
+     25%, 75% { opacity: 0.3; }
+ }
+
+/* Двухколоночный режим для админов: диалоги + тикеты */
+.chat-admin-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 992px) {
+    .chat-admin-grid {
+        grid-template-columns: 1.25fr 0.75fr;
+        align-items: start;
+    }
+
+    /* Если правого админ-блока нет — не режем ширину страницы */
+    .chat-admin-grid.chat-admin-grid--single {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chat-admin-panel {
+    position: sticky;
+    top: 78px;
+}
+
+.chat-support-list .list-group-item {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: rgba(31, 41, 55, 0.9);
+    transition: background 0.15s ease-out, transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.chat-support-list .list-group-item:hover {
+    background: rgba(127, 29, 29, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.9);
+}
+
+.chat-last-trade {
+    background: rgba(2, 6, 23, 0.25);
+    border: 1px solid rgba(51, 65, 85, 0.7);
+    border-radius: 14px;
+    padding: 10px 10px;
+}
+
+.chat-last-trade:hover {
+    border-color: rgba(56, 189, 248, 0.25);
+    background: rgba(15, 23, 42, 0.65);
+}
+

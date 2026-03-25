@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h4 mb-0">Мои диалоги</h1>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        {% if conversations %}
+            <span class="small text-muted">
+                Всего диалогов: {{ conversations|length }}
+            </span>
+        {% endif %}
+        {% if can_view_support and open_support_count > 0 %}
+            <span class="badge bg-danger">
+                Тикеты: {{ open_support_count }}
+            </span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="chat-admin-grid{% if not show_right_panel %} chat-admin-grid--single{% endif %}">
+    <div>
+        {% if conversations %}
+            <div class="list-group conversation-list">
+                {% for convo in conversations %}
+            {% if request.user == convo.buyer %}
+                {% with other_user=convo.seller %}
+                <a href="{% url 'market:conversation_detail' convo.pk %}"
+                   class="list-group-item list-group-item-action conversation-item d-flex justify-content-between align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-3 flex-grow-1">
+                        <div class="conversation-avatar">
+                            {% if other_user.profile.avatar %}
+                                <img src="{{ other_user.profile.avatar.url }}"
+                                     alt="{{ other_user.username }}"
+                                     class="rounded-circle"
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                                <span class="conversation-avatar-initial">
+                                    {{ other_user.username|first|upper }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <span class="fw-semibold">
+                                    {{ other_user.username }}
+                                </span>
+                                {% if other_user.profile.is_banned %}
+                                    <span class="badge bg-danger bg-opacity-75 small text-uppercase">
+                                        Заблокирован
+                                    </span>
+                                {% endif %}
+                                {% if convo.listing %}
+                                    <span class="badge bg-secondary bg-opacity-75 small">
+                                        {{ convo.listing.title|truncatechars:32 }}
+                                    </span>
+                                    {% if convo.listing.deal_type == 'buy' %}
+                                        <span class="badge bg-success small">Покупка</span>
+                                    {% elif convo.listing.deal_type == 'trade' %}
+                                        <span class="badge bg-info text-dark small">Обмен</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark small">Продажа</span>
+                                    {% endif %}
+                                    {% if convo.listing.barter_allowed and convo.listing.deal_type != 'trade' %}
+                                        <span class="badge bg-secondary small">Бартер</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-dark border border-secondary small">
+                                        Личный чат
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="small text-muted">
+                                Вы покупатель ·
+                                Последнее сообщение: {{ convo.last_message_at|default:convo.created_at|date:"d.m.Y H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-1">
+                        {% if convo.unread_count %}
+                            <span class="badge bg-success blink-badge">
+                                {{ convo.unread_count }} новых
+                            </span>
+                        {% endif %}
+                        <span class="small text-muted">
+                            {{ convo.created_at|date:"d.m.Y H:i" }}
+                        </span>
+                    </div>
+                </a>
+                {% endwith %}
+            {% else %}
+                {% with other_user=convo.buyer %}
+                <a href="{% url 'market:conversation_detail' convo.pk %}"
+                   class="list-group-item list-group-item-action conversation-item d-flex justify-content-between align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-3 flex-grow-1">
+                        <div class="conversation-avatar">
+                            {% if other_user.profile.avatar %}
+                                <img src="{{ other_user.profile.avatar.url }}"
+                                     alt="{{ other_user.username }}"
+                                     class="rounded-circle"
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                                <span class="conversation-avatar-initial">
+                                    {{ other_user.username|first|upper }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <span class="fw-semibold">
+                                    {{ other_user.username }}
+                                </span>
+                                {% if other_user.profile.is_banned %}
+                                    <span class="badge bg-danger bg-opacity-75 small text-uppercase">
+                                        Заблокирован
+                                    </span>
+                                {% endif %}
+                                {% if convo.listing %}
+                                    <span class="badge bg-secondary bg-opacity-75 small">
+                                        {{ convo.listing.title|truncatechars:32 }}
+                                    </span>
+                                    {% if convo.listing.deal_type == 'buy' %}
+                                        <span class="badge bg-success small">Покупка</span>
+                                    {% elif convo.listing.deal_type == 'trade' %}
+                                        <span class="badge bg-info text-dark small">Обмен</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark small">Продажа</span>
+                                    {% endif %}
+                                    {% if convo.listing.barter_allowed and convo.listing.deal_type != 'trade' %}
+                                        <span class="badge bg-secondary small">Бартер</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-dark border border-secondary small">
+                                        Личный чат
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="small text-muted">
+                                Вы продавец ·
+                                Последнее сообщение: {{ convo.last_message_at|default:convo.created_at|date:"d.m.Y H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-1">
+                        {% if convo.unread_count %}
+                            <span class="badge bg-success blink-badge">
+                                {{ convo.unread_count }} новых
+                            </span>
+                        {% endif %}
+                        <span class="small text-muted">
+                            {{ convo.created_at|date:"d.m.Y H:i" }}
+                        </span>
+                    </div>
+                </a>
+                {% endwith %}
+            {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">У вас пока нет диалогов.</p>
+        {% endif %}
+    </div>
+
+    {% if can_view_support or last_trade_ui or user_trade_tickets %}
+    <div class="chat-admin-panel">
+        {% if last_trade_ui %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 mb-0">Последняя сделка</h2>
+                    <span class="badge bg-secondary chat-trade-timer-badge"
+                          data-trade-remaining="{{ last_trade_ui.remaining_seconds }}"
+                          data-bs-toggle="tooltip"
+                          data-bs-title="Окно спора: 60 минут после завершения сделки. За это время можно открыть спор или обратиться в поддержку.">
+                        <i class="bi bi-clock-history me-1"></i>
+                        <span class="chat-trade-timer-badge-text">60:00</span>
+                    </span>
+                </div>
+
+                <div class="chat-last-trade">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div class="small text-muted">
+                            {% if last_trade_ui.listing %}
+                                {{ last_trade_ui.listing.title|truncatechars:44 }}
+                                {% if last_trade_ui.listing.deal_type == 'buy' %}
+                                    · <span class="badge bg-success small">Покупка</span>
+                                {% elif last_trade_ui.listing.deal_type == 'trade' %}
+                                    · <span class="badge bg-info text-dark small">Обмен</span>
+                                {% else %}
+                                    · <span class="badge bg-warning text-dark small">Продажа</span>
+                                {% endif %}
+                            {% else %}
+                                Сделка без объявления
+                            {% endif %}
+                        </div>
+                        <span class="badge bg-secondary">#{{ last_trade_ui.conversation.id }}</span>
+                    </div>
+
+                    <div class="mt-1 small">
+                        Оппонент: <span class="fw-semibold">{{ last_trade_ui.other_user.username }}</span>
+                        <span class="text-muted">(ID: {{ last_trade_ui.other_user.id }})</span>
+                    </div>
+
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        <a href="{% url 'market:conversation_detail' last_trade_ui.conversation.id %}"
+                           class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-chat-dots me-1"></i> Обсудить
+                        </a>
+
+                        <a href="{% url 'market:support_dispute' last_trade_ui.conversation.id %}"
+                           class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Оспорить
+                        </a>
+
+                        <a href="{% url 'market:support_new' %}?request_type=seller&amp;subject={{ 'Техподдержка по сделке #'|add:last_trade_ui.conversation.id|urlencode }}"
+                           class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-life-preserver me-1"></i> Техподдержка
+                        </a>
+                    </div>
+
+                    <div class="small text-muted mt-2">
+                        Окно спора: 60 минут после завершения сделки.
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 mb-0">Обращения</h2>
+                    {% if can_view_support %}
+                        <span class="badge bg-danger">{{ open_support_count|default:0 }}</span>
+                    {% endif %}
+                </div>
+                {% if can_view_support and support_tickets %}
+                    <div class="list-group chat-support-list">
+                        {% for t in support_tickets %}
+                            <a href="/admin/market/supportrequest/{{ t.id }}/change/"
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-2">
+                                <div class="me-2">
+                                    <div class="fw-semibold">
+                                        {% if t.subject %}{{ t.subject|truncatechars:40 }}{% else %}Тикет #{{ t.id }}{% endif %}
+                                    </div>
+                                    <div class="small text-muted">
+                                        {{ t.created_at|date:"d.m.Y H:i" }}
+                                        {% if t.author %} · {{ t.author.username }}{% endif %}
+                                    </div>
+                                </div>
+                                <span class="badge bg-danger bg-opacity-75">Открыт</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <div class="small text-muted mt-2">
+                        Нажми на тикет — откроется в админке для ответа.
+                    </div>
+                {% elif user_trade_tickets %}
+                    <div class="list-group chat-support-list">
+                        {% for t in user_trade_tickets %}
+                            <a href="{% url 'market:support_my' %}#ticket-{{ t.id }}"
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-2">
+                                <div class="me-2">
+                                    <div class="fw-semibold">
+                                        {% if t.subject %}{{ t.subject|truncatechars:44 }}{% else %}Тикет #{{ t.id }}{% endif %}
+                                    </div>
+                                    <div class="small text-muted">
+                                        {{ t.created_at|date:"d.m.Y H:i" }}
+                                        {% if t.is_resolved %} · Закрыт{% else %} · В работе{% endif %}
+                                    </div>
+                                </div>
+                                {% if t.is_resolved %}
+                                    <span class="badge bg-success bg-opacity-75">Закрыт</span>
+                                {% else %}
+                                    <span class="badge bg-danger bg-opacity-75">Открыт</span>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-muted small">Открытых обращений нет.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/conversation_list.css' %}">
+<script>
+(() => {
+  // Bootstrap tooltips (if available)
+  try {
+    if (window.bootstrap && window.bootstrap.Tooltip) {
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+        new window.bootstrap.Tooltip(el);
+      });
+    }
+  } catch (e) {}
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function fmt(sec) {
+    sec = Math.max(0, sec|0);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${pad2(s)}`;
+  }
+
+  const badge = document.querySelector('.chat-trade-timer-badge');
+  if (!badge) return;
+  const textEl = badge.querySelector('.chat-trade-timer-badge-text');
+  let remaining = parseInt(badge.getAttribute('data-trade-remaining') || '0', 10);
+
+  function render() {
+    if (!textEl) return;
+    textEl.textContent = remaining > 0 ? fmt(remaining) : '00:00';
+  }
+  render();
+  setInterval(() => {
+    if (remaining <= 0) return;
+    remaining -= 1;
+    render();
+    if (remaining <= 0) {
+      // Время вышло — скрываем карточку “Последняя сделка”, чтобы она не висела справа.
+      const card = badge.closest('.card');
+      if (card) card.style.display = 'none';
+    }
+  }, 1000);
+})();
+</script>
+{% endblock %}
