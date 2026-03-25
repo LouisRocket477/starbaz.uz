@@ -34,6 +34,7 @@ class UserProfile(models.Model):
     )
     avatar = models.ImageField(
         upload_to="avatars/",
+        max_length=500,
         blank=True,
         null=True,
         verbose_name="Аватар",
@@ -526,6 +527,7 @@ class ListingImage(models.Model):
     )
     image = models.ImageField(
         upload_to="listing_images/",
+        max_length=500,
         validators=[image_upload_validator],
     )
     sort_order = models.PositiveIntegerField(default=0)
@@ -606,6 +608,7 @@ class ListingVideo(models.Model):
     )
     file = models.FileField(
         upload_to="listing_videos/",
+        max_length=500,
         verbose_name="Видео",
     )
     sort_order = models.PositiveIntegerField(default=0)
@@ -682,6 +685,7 @@ class Message(models.Model):
     content = models.TextField(blank=True)
     image = models.ImageField(
         upload_to="chat_images/",
+        max_length=500,
         null=True,
         blank=True,
         verbose_name="Картинка",
@@ -932,6 +936,7 @@ class SiteSettings(models.Model):
     )
     background_media = models.FileField(
         upload_to="backgrounds/",
+        max_length=500,
         blank=True,
         null=True,
         verbose_name="Фон сайта (картинка / видео)",
@@ -1132,6 +1137,7 @@ class MusicTrack(models.Model):
     )
     file = models.FileField(
         upload_to="music/",
+        max_length=500,
         verbose_name="Аудиофайл",
         help_text="MP3, OGG или другой поддерживаемый браузером формат.",
     )
@@ -1271,6 +1277,7 @@ class Banner(models.Model):
     )
     image = models.ImageField(
         upload_to="banners/",
+        max_length=500,
         verbose_name="Картинка баннера",
         validators=[image_upload_validator],
     )
@@ -1350,6 +1357,7 @@ class NewsItem(models.Model):
     link_url = models.URLField(verbose_name="Ссылка", help_text="Ссылка на пост или канал")
     preview_image = models.ImageField(
         upload_to="news_previews/",
+        max_length=500,
         blank=True,
         null=True,
         verbose_name="Превью (опционально)",

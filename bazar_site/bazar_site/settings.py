@@ -129,7 +129,18 @@ WSGI_APPLICATION = 'bazar_site.wsgi.application'
 
 DB_ENGINE = os.getenv("DB_ENGINE", "sqlite").lower()
 
-if DB_ENGINE == "mysql":
+if DB_ENGINE in ("postgres", "postgresql"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME", "bazar_db"),
+            "USER": os.getenv("DB_USER", "bazar_user"),
+            "PASSWORD": os.getenv("DB_PASSWORD", ""),
+            "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+        }
+    }
+elif DB_ENGINE == "mysql":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
@@ -149,6 +160,9 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            # SQLite может выдавать "database is locked" при параллельных запросах (туннели/статистика/админка).
+            # Увеличиваем таймаут ожидания блокировки.
+            "OPTIONS": {"timeout": 30},
         }
     }
 

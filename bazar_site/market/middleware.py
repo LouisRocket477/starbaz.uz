@@ -207,12 +207,17 @@ class VisitTrackingMiddleware:
     @staticmethod
     def _track(request: HttpRequest) -> None:
         try:
+            # В режиме разработки статистика не должна мешать (SQLite легко ловит "database is locked").
+            if settings.DEBUG:
+                return
             if request.method != "GET":
                 return
             path = request.path or ""
             if path.startswith("/static/") or path.startswith("/media/"):
                 return
-            # админ и API можно при желании исключить отдельными условиями
+            # Админку и страницы аккаунта исключаем всегда — там много чувствительных POST/редактирования.
+            if path.startswith("/admin/") or path.startswith("/accounts/"):
+                return
 
             # гарантируем наличие session_key
             session = request.session
