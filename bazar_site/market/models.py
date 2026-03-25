@@ -1054,6 +1054,11 @@ class SiteSettings(models.Model):
         verbose_name="Полезные ссылки — текст страницы",
         help_text="Вводный текст над списком полезных ссылок. Можно использовать HTML‑разметку.",
     )
+    captcha_enabled = models.BooleanField(
+        default=False,
+        verbose_name="Включить CAPTCHA",
+        help_text="Если выключено — проверка reCAPTCHA на входе/регистрации будет отключена.",
+    )
 
     class Meta:
         verbose_name = "Настройки сайта"

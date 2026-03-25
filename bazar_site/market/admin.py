@@ -118,6 +118,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     }
     fieldsets = (
         ("Брендинг", {"fields": ("name", "logo_text", "primary_color", "secondary_color", "footer_text", "footer_left", "footer_right")}),
+        ("Безопасность", {"fields": ("captcha_enabled",)}),
         (
             "Главный экран",
             {

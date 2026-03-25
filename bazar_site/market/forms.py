@@ -4,6 +4,7 @@ from allauth.account.forms import SignupForm
 from django import forms
 from django.core.exceptions import ValidationError
 
+from market.models import SiteSettings
 from market.recaptcha_keys import get_admin_recaptcha_secret_key
 from market.recaptcha_utils import verify_recaptcha_token_v3
 
@@ -26,6 +27,11 @@ class SignupFormWithCaptcha(SignupForm):
 
     def clean(self):
         cleaned_data = super().clean()
+
+        if self.request is not None:
+            settings_obj, _ = SiteSettings.objects.get_or_create(pk=1)
+            if not getattr(settings_obj, "captcha_enabled", False):
+                return cleaned_data
 
         secret = get_admin_recaptcha_secret_key()
         if not secret:
@@ -77,6 +83,11 @@ class SimpleLoginForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+
+        if self.request is not None:
+            settings_obj, _ = SiteSettings.objects.get_or_create(pk=1)
+            if not getattr(settings_obj, "captcha_enabled", False):
+                return cleaned_data
 
         secret = get_admin_recaptcha_secret_key()
         if not secret:
