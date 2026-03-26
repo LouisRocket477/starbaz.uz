@@ -297,6 +297,24 @@
 .support-msg-attach {
     margin-top: 6px;
     font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.support-msg-image-link {
+    display: inline-block;
+    max-width: min(420px, 100%);
+}
+
+.support-msg-image {
+    display: block;
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.35);
 }
 
 .support-ticket-highlight {

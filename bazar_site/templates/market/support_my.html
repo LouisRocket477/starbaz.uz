@@ -107,6 +107,9 @@
                                                                         {% endif %}
                                                                         {% if msg.screenshot %}
                                                                             <div class="support-msg-attach">
+                                                                                <a href="{{ msg.screenshot.url }}" target="_blank" class="support-msg-image-link">
+                                                                                    <img src="{{ msg.screenshot.url }}" alt="Скриншот" class="support-msg-image">
+                                                                                </a>
                                                                                 <a href="{{ msg.screenshot.url }}" target="_blank" class="text-decoration-underline">Открыть скриншот</a>
                                                                             </div>
                                                                         {% endif %}
@@ -215,6 +218,9 @@
                                                                         {% endif %}
                                                                         {% if msg.screenshot %}
                                                                             <div class="support-msg-attach">
+                                                                                <a href="{{ msg.screenshot.url }}" target="_blank" class="support-msg-image-link">
+                                                                                    <img src="{{ msg.screenshot.url }}" alt="Скриншот" class="support-msg-image">
+                                                                                </a>
                                                                                 <a href="{{ msg.screenshot.url }}" target="_blank" class="text-decoration-underline">Открыть скриншот</a>
                                                                             </div>
                                                                         {% endif %}
