@@ -21,6 +21,11 @@ venv/
 media/
 staticfiles/
 
+# Local dev logs/scripts
+bazar_site/tools/run-logs/
+bazar_site/tools/*create_user*.py
+bazar_site/tools/create_users.py
+
 # OS / IDE
 .DS_Store
 Thumbs.db

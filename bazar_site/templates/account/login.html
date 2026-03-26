@@ -49,7 +49,7 @@
                     <label class="form-check-label">Запомнить меня</label>
                 </div>
 
-                {% if recaptcha_public_key %}
+                {% if site_settings.captcha_enabled and recaptcha_public_key %}
                     <input type="hidden" name="g-recaptcha-response" id="login-recaptcha-token">
                 {% endif %}
                 <button type="submit" class="btn btn-starbaz w-100">Войти</button>
@@ -67,7 +67,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'account/css/auth.css' %}">
 <script src="{% static 'account/js/auth.js' %}"></script>
-{% if recaptcha_public_key %}
+            {% if site_settings.captcha_enabled and recaptcha_public_key %}
 <script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_public_key }}"></script>
 <script>
   (function () {

@@ -179,6 +179,19 @@ def parse_barter_request_message(content):
 
 
 @register.filter
+def normalize_compact_text(value):
+    """
+    Нормализует текст для сравнения в шаблонах:
+    - lower()
+    - убирает все пробельные символы (пробелы, табы, переносы строк, NBSP и т.п.)
+    """
+    if value is None:
+        return ""
+    s = str(value).lower()
+    return re.sub(r"\s+", "", s, flags=re.UNICODE)
+
+
+@register.filter
 def parse_sell_offer_message(content):
     """
     Парсит сообщение о предложении своего товара продавцу.

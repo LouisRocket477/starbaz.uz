@@ -4,8 +4,10 @@
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q, Count, Max
+from django.db.models import Q, Count, Max, F
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -26,6 +28,24 @@ from ..templatetags.market_extras import parse_sell_offer_message
 from ._helpers import get_site_settings
 
 
+def _typing_cache_key(conversation_id: int, user_id: int) -> str:
+    return f"typing:{conversation_id}:{user_id}"
+
+
+def _message_to_payload(msg: Message, request_user_id: int):
+    profile, _ = UserProfile.objects.get_or_create(user=msg.sender)
+    avatar_url = profile.avatar.url if profile.avatar else None
+    return {
+        "id": msg.id,
+        "sender": msg.sender.username,
+        "is_me": msg.sender_id == request_user_id,
+        "created_at": msg.created_at.strftime("%d.%m.%Y %H:%M"),
+        "content": msg.content,
+        "image_url": msg.image.url if msg.image else None,
+        "avatar_url": avatar_url,
+    }
+
+
 @login_required
 def conversation_list(request):
     settings_obj = get_site_settings()
@@ -38,7 +58,8 @@ def conversation_list(request):
             filter=Q(messages__is_read=False) & ~Q(messages__sender=request.user),
         ),
         last_message_at=Max("messages__created_at"),
-    ).order_by("-last_message_at", "-created_at")
+        last_activity=Coalesce(Max("messages__created_at"), F("created_at")),
+    ).order_by("-last_activity", "-unread_count", "-created_at")
 
     support_tickets = []
     can_view_support = bool(user_profile.is_project_admin or user_profile.is_operator or request.user.is_superuser)
@@ -134,6 +155,131 @@ def conversation_list(request):
 
 
 @login_required
+def conversation_typing_ping(request, pk: int):
+    """
+    Пинг от клиента: "я печатаю" в этом диалоге.
+    Храним коротко (несколько секунд) в кэше.
+    """
+    # Разрешаем GET/POST, чтобы работало без CSRF на фронте.
+    if request.method not in {"GET", "POST"}:
+        return JsonResponse({"error": "method_not_allowed"}, status=405)
+
+    conversation = get_object_or_404(
+        Conversation.objects.select_related("buyer", "seller"),
+        pk=pk,
+    )
+    if request.user not in {conversation.buyer, conversation.seller}:
+        return JsonResponse({"error": "forbidden"}, status=403)
+
+    cache.set(_typing_cache_key(conversation.id, request.user.id), True, timeout=6)
+    return JsonResponse({"ok": True})
+
+
+@login_required
+def conversation_typing_status(request, pk: int):
+    """
+    Статус для клиента: печатает ли другой участник (в последние несколько секунд).
+    """
+    if request.method != "GET":
+        return JsonResponse({"error": "method_not_allowed"}, status=405)
+
+    conversation = get_object_or_404(
+        Conversation.objects.select_related("buyer", "seller"),
+        pk=pk,
+    )
+    if request.user not in {conversation.buyer, conversation.seller}:
+        return JsonResponse({"error": "forbidden"}, status=403)
+
+    other_user = conversation.seller if request.user == conversation.buyer else conversation.buyer
+    is_typing = bool(cache.get(_typing_cache_key(conversation.id, other_user.id)))
+    return JsonResponse({"typing": is_typing, "user": other_user.username})
+
+
+@login_required
+def conversation_poll(request, pk: int):
+    """
+    Агрессивная синхронизация чата без WebSocket:
+    клиент запрашивает новые сообщения после after_id.
+    """
+    if request.method != "GET":
+        return JsonResponse({"error": "method_not_allowed"}, status=405)
+
+    conversation = get_object_or_404(
+        Conversation.objects.select_related("buyer", "seller"),
+        pk=pk,
+    )
+    if request.user not in {conversation.buyer, conversation.seller}:
+        return JsonResponse({"error": "forbidden"}, status=403)
+
+    try:
+        after_id = int(request.GET.get("after", "0") or 0)
+    except (TypeError, ValueError):
+        after_id = 0
+
+    qs = conversation.messages.select_related("sender").order_by("id")
+    if after_id > 0:
+        qs = qs.filter(id__gt=after_id)
+    new_messages = list(qs[:50])
+
+    # Если пользователь в открытом диалоге — новые входящие считаем прочитанными.
+    if new_messages:
+        Message.objects.filter(
+            conversation=conversation,
+            id__in=[m.id for m in new_messages],
+            is_read=False,
+        ).exclude(sender=request.user).update(is_read=True)
+
+    payload = [_message_to_payload(m, request.user.id) for m in new_messages]
+    last_id = payload[-1]["id"] if payload else after_id
+    return JsonResponse({"messages": payload, "last_id": last_id})
+
+
+@login_required
+def nav_status(request):
+    """
+    Возвращает счётчики для шапки без перезагрузки:
+    - непрочитанные личные сообщения
+    - открытые тикеты (для админов/операторов)
+    """
+    if request.method != "GET":
+        return JsonResponse({"error": "method_not_allowed"}, status=405)
+
+    unread = Message.objects.filter(
+        Q(conversation__buyer=request.user) | Q(conversation__seller=request.user),
+        is_read=False,
+    ).exclude(sender=request.user).count()
+
+    unread_last_id = (
+        Message.objects.filter(
+            Q(conversation__buyer=request.user) | Q(conversation__seller=request.user),
+            is_read=False,
+        )
+        .exclude(sender=request.user)
+        .order_by("-id")
+        .values_list("id", flat=True)
+        .first()
+    ) or 0
+
+    open_tickets = 0
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if getattr(profile, "is_project_admin", False) or getattr(profile, "is_operator", False) or request.user.is_superuser:
+        try:
+            from ..support.models import SupportRequest
+
+            open_tickets = SupportRequest.objects.filter(is_resolved=False).count()
+        except Exception:
+            open_tickets = 0
+
+    return JsonResponse(
+        {
+            "unread_chat_count": unread,
+            "unread_last_id": int(unread_last_id or 0),
+            "open_support_tickets": open_tickets,
+        }
+    )
+
+
+@login_required
 def conversation_detail(request, pk: int):
     settings_obj = get_site_settings()
     conversation = get_object_or_404(
@@ -154,6 +300,9 @@ def conversation_detail(request, pk: int):
         unread_qs.update(is_read=True)
 
     messages = conversation.messages.select_related("sender")
+    last_message_id = (
+        messages.order_by("-id").values_list("id", flat=True).first() or 0
+    )
     pending_purchase_requests = []
     if request.user == conversation.seller and conversation.listing:
         pending_purchase_requests = list(
@@ -255,6 +404,7 @@ def conversation_detail(request, pk: int):
             "site_settings": settings_obj,
             "conversation": conversation,
             "messages": messages,
+            "last_message_id": last_message_id,
             "had_unread": had_unread,
             "other_user": other_user,
             "other_profile": other_profile,
@@ -374,10 +524,6 @@ def conversation_request_purchase(request, pk: int):
         sender=request.user,
         content=content,
     )
-
-    # Убираем исходное предложение из списка "Предложения о продаже",
-    # чтобы нельзя было повторно принять одно и то же предложение.
-    msg.delete()
 
     return redirect("market:conversation_detail", pk=pk)
 

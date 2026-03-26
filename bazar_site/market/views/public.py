@@ -423,6 +423,8 @@ def listing_detail(request, pk: int):
     conversation = None
     messages = None
     user_review = None
+    listing_has_quantity = listing.quantity is not None
+    listing_chat_last_message_id = 0
 
     if request.method == "POST" and is_user_guarantor:
         action = request.POST.get("action")
@@ -445,6 +447,9 @@ def listing_detail(request, pk: int):
             seller=listing.seller,
         )
         messages = conversation.messages.select_related("sender")
+        listing_chat_last_message_id = (
+            messages.order_by("-id").values_list("id", flat=True).first() or 0
+        )
         user_review = SellerReview.objects.filter(
             listing=listing, seller=listing.seller, buyer=request.user
         ).first()
@@ -775,6 +780,8 @@ def listing_detail(request, pk: int):
             "user_profile": user_profile,
             "conversation": conversation,
             "messages": messages,
+            "listing_has_quantity": listing_has_quantity,
+            "listing_chat_last_message_id": listing_chat_last_message_id,
             "seller_conversations": seller_conversations,
             "reviews": reviews_qs,
             "user_review": user_review,

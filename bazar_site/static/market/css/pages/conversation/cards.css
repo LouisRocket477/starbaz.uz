@@ -132,6 +132,14 @@
     font-size: 0.9rem;
 }
 
+/* Индикатор "печатает..." */
+.conv-typing-indicator {
+    margin-top: 0.15rem;
+    font-size: 0.78rem;
+    color: rgba(148, 163, 184, 0.95);
+    letter-spacing: 0.01em;
+}
+
 .conv-bubble-sell {
     border-left: 3px solid rgba(56, 189, 248, 0.6) !important;
 }

@@ -24,6 +24,13 @@ def footer(request):
     active_since = timezone.now() - timedelta(minutes=10)
     online_sessions = VisitSession.objects.filter(last_seen__gte=active_since)
     online_count = online_sessions.count()
+    guests_online = online_sessions.filter(user__isnull=True).count()
+    users_online = online_sessions.filter(user__isnull=False).count()
+    # Если трекинг сессий отключён/пустой — считаем по last_seen профилей.
+    if online_count == 0:
+        online_count = UserProfile.objects.filter(last_seen__gte=active_since).count()
+        guests_online = online_count
+        users_online = 0
 
     # Плейлист для глобального медиаплеера (треки из media/music/).
     music_tracks = MusicTrack.objects.filter(is_active=True).order_by("sort_order", "id")
@@ -40,6 +47,8 @@ def footer(request):
         "footer_columns": columns,
         "footer_socials": socials,
         "site_online_now": online_count,
+        "site_guests_online_now": guests_online,
+        "site_users_online_now": users_online,
         "media_playlist": media_playlist,
         "og_default_image": og_default_image,
     }

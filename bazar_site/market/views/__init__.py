@@ -32,6 +32,10 @@ from .chat import (
     conversation_send_message,
     conversation_submit_review,
     conversation_submit_review_reply,
+    conversation_typing_ping,
+    conversation_typing_status,
+    conversation_poll,
+    nav_status,
     conversation_with_seller,
 )
 from .errors import error_400, error_403, error_404, error_500
@@ -67,6 +71,10 @@ __all__ = [
     "conversation_send_message",
     "conversation_submit_review",
     "conversation_submit_review_reply",
+    "conversation_typing_ping",
+    "conversation_typing_status",
+    "conversation_poll",
+    "nav_status",
     "conversation_with_seller",
     "error_400",
     "error_403",

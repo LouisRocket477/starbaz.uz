@@ -207,9 +207,6 @@ class VisitTrackingMiddleware:
     @staticmethod
     def _track(request: HttpRequest) -> None:
         try:
-            # В режиме разработки статистика не должна мешать (SQLite легко ловит "database is locked").
-            if settings.DEBUG:
-                return
             if request.method != "GET":
                 return
             path = request.path or ""
@@ -217,6 +214,9 @@ class VisitTrackingMiddleware:
                 return
             # Админку и страницы аккаунта исключаем всегда — там много чувствительных POST/редактирования.
             if path.startswith("/admin/") or path.startswith("/accounts/"):
+                return
+            # Служебные эндпоинты — не считаем как “посещение”
+            if path.startswith("/heartbeat/") or path.startswith("/global-chat/") or path.startswith("/home-live-search/"):
                 return
 
             # гарантируем наличие session_key
@@ -226,6 +226,20 @@ class VisitTrackingMiddleware:
             session_key = session.session_key
             if not session_key:
                 return
+
+            # Троттлинг записи: обновляем last_seen не чаще, чем раз в 30 секунд на одну сессию.
+            now = timezone.now()
+            last_iso = session.get("_vt_last", "")
+            if last_iso:
+                try:
+                    last_dt = timezone.datetime.fromisoformat(last_iso)
+                    if timezone.is_naive(last_dt):
+                        last_dt = timezone.make_aware(last_dt, timezone.get_current_timezone())
+                    if (now - last_dt).total_seconds() < 30:
+                        return
+                except Exception:
+                    pass
+            session["_vt_last"] = now.isoformat()
 
             ip = request.META.get("REMOTE_ADDR") or ""
             ua = request.META.get("HTTP_USER_AGENT", "") or ""
@@ -246,7 +260,7 @@ class VisitTrackingMiddleware:
             )
             if not created:
                 fields = ["last_seen", "last_path", "last_referrer", "pageviews"]
-                obj.last_seen = timezone.now()
+                obj.last_seen = now
                 obj.last_path = path[:512]
                 if ref:
                     obj.last_referrer = ref[:512]

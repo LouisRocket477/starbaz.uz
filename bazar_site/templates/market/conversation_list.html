@@ -83,7 +83,7 @@
                             </span>
                         {% endif %}
                         <span class="small text-muted">
-                            {{ convo.created_at|date:"d.m.Y H:i" }}
+                            {{ convo.last_message_at|default:convo.created_at|date:"d.m.Y H:i" }}
                         </span>
                     </div>
                 </a>
@@ -148,7 +148,7 @@
                             </span>
                         {% endif %}
                         <span class="small text-muted">
-                            {{ convo.created_at|date:"d.m.Y H:i" }}
+                            {{ convo.last_message_at|default:convo.created_at|date:"d.m.Y H:i" }}
                         </span>
                     </div>
                 </a>

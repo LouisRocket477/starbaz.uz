@@ -27,6 +27,58 @@
     background: rgba(148, 163, 184, 0.55);
 }
 
+/* Индикатор "печатает..." внутри окна сообщений (внизу, поверх) */
+.conv-typing-indicator--in-chat {
+    position: sticky;
+    bottom: 0;
+    display: block;
+    padding: 0.25rem 0.6rem;
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    color: rgba(148, 163, 184, 0.95);
+    background: linear-gradient(180deg, rgba(2, 6, 23, 0), rgba(2, 6, 23, 0.85));
+    border-radius: 0.5rem;
+    pointer-events: none;
+}
+
+.conv-typing-indicator--in-chat .conv-typing-name {
+    font-weight: 600;
+    color: #7dd3fc;
+    margin-right: 0.25rem;
+}
+
+.conv-typing-indicator--in-chat .conv-typing-text {
+    margin-right: 0.2rem;
+}
+
+.conv-typing-indicator--in-chat .conv-typing-dots {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.16rem;
+    transform: translateY(1px);
+}
+
+.conv-typing-indicator--in-chat .conv-typing-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.95);
+    opacity: 0.85;
+    animation: conv-typing-bounce 1s infinite ease-in-out;
+}
+
+.conv-typing-indicator--in-chat .conv-typing-dots span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+.conv-typing-indicator--in-chat .conv-typing-dots span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes conv-typing-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.65; }
+    40% { transform: translateY(-4px); opacity: 1; }
+}
+
 .conv-empty {
     color: #64748b;
     font-size: 0.8rem;

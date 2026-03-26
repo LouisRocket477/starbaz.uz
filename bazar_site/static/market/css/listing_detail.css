@@ -397,6 +397,44 @@
     border: 1px solid rgba(71, 85, 105, 0.7);
 }
 
+/* Индикатор "печатает..." в мини-чате */
+.listing-chat-typing {
+    position: sticky;
+    bottom: 0;
+    margin-top: 0.35rem;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.75rem;
+    color: rgba(148, 163, 184, 0.95);
+    background: linear-gradient(180deg, rgba(2, 6, 23, 0), rgba(2, 6, 23, 0.88));
+    border-radius: 0.5rem;
+    pointer-events: none;
+}
+.listing-chat-typing-name {
+    font-weight: 600;
+    color: #7dd3fc;
+    margin-right: 0.25rem;
+}
+.listing-chat-typing-dots {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.16rem;
+    transform: translateY(1px);
+}
+.listing-chat-typing-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.95);
+    opacity: 0.85;
+    animation: listing-typing-bounce 1s infinite ease-in-out;
+}
+.listing-chat-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.listing-chat-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes listing-typing-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.65; }
+    40% { transform: translateY(-4px); opacity: 1; }
+}
+
 /* Остальные стили мини-чата (взяты из рабочего варианта) */
 .listing-chat-row {
     display: flex;

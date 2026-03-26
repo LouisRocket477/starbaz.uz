@@ -106,9 +106,6 @@
                                             <span class="badge bg-secondary">Нет в наличии</span>
                                         {% endif %}
                                     {% endif %}
-                                    {% if listing.deal_type != 'buy' and listing.deal_type != 'trade' and listing.barter_allowed %}
-                                        <span class="badge bg-secondary">Бартер</span>
-                                    {% endif %}
                                 </div>
                                 {% if listing.original_price and listing.price < listing.original_price and listing.discount_percent %}
                                     <span class="listing-card-discount">‑{{ listing.discount_percent }}%</span>
@@ -117,7 +114,7 @@
                             <div class="card-body d-flex flex-column listing-card-body">
                                 <h5 class="card-title listing-card-title">{{ listing.title }}</h5>
                                 <p class="listing-card-category">{{ listing.category.name }}</p>
-                                {% if listing.description %}
+                                {% if listing.description and listing.description|normalize_compact_text != listing.title|normalize_compact_text %}
                                     <p class="listing-card-description">{{ listing.description|truncatechars:80 }}</p>
                                 {% endif %}
                                 <div class="listing-card-extra">

@@ -154,11 +154,71 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('chat-form');
     const submitBtn = document.getElementById('chat-submit-btn');
     const cooldownHint = document.getElementById('chat-cooldown-hint');
+    const typingEl = document.getElementById('conv-typing-indicator'); // индикатор собеседника
 
     if (messagesBox) {
         // При загрузке страницы сразу прокручиваем историю в самый низ
         messagesBox.scrollTop = messagesBox.scrollHeight;
     }
+
+    // ===== Typing indicator (как в Telegram) =====
+    (function initTypingIndicator() {
+        if (!form || !textarea || !typingEl) return;
+        const pingUrl = form.dataset.typingPingUrl;
+        const statusUrl = form.dataset.typingStatusUrl;
+        if (!pingUrl || !statusUrl) return;
+
+        let lastPingAt = 0;
+
+        function postPing() {
+            const now = Date.now();
+            if (now - lastPingAt < 1800) return; // троттлинг
+            lastPingAt = now;
+            // GET — чтобы не зависеть от CSRF (надёжнее на проде/туннелях)
+            fetch(pingUrl, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
+                .catch(function () {});
+        }
+
+        function renderTyping(isTyping, username) {
+            if (!typingEl) return;
+            if (isTyping) {
+                typingEl.style.display = 'block';
+                typingEl.setAttribute('aria-label', (username || '') + ' печатает');
+            } else {
+                typingEl.style.display = 'none';
+            }
+        }
+
+        function typingEvent() {
+            // пингуем на любое действие ввода — так надёжнее
+            postPing();
+        }
+        textarea.addEventListener('input', typingEvent);
+        textarea.addEventListener('keydown', typingEvent);
+        textarea.addEventListener('keyup', typingEvent);
+        textarea.addEventListener('compositionupdate', typingEvent);
+        textarea.addEventListener('focus', typingEvent);
+
+        // На некоторых устройствах input/keydown могут срабатывать нестабильно,
+        // поэтому дополнительно пингуем, пока поле в фокусе.
+        setInterval(function () {
+            try {
+                if (document.activeElement !== textarea) return;
+                postPing();
+            } catch (e) {}
+        }, 2000);
+
+        // Периодически спрашиваем сервер — печатает ли другой пользователь
+        setInterval(function () {
+            fetch(statusUrl, { method: 'GET', credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data) return;
+                    renderTyping(!!data.typing, data.user);
+                })
+                .catch(function () {});
+        }, 1500);
+    })();
 
     if (fileInput && imageLabel) {
         fileInput.addEventListener('change', function () {
@@ -246,8 +306,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         function appendMessage(msg) {
+            // Не добавляем повторно одно и то же сообщение
+            if (msg && msg.id) {
+                const exists = messagesBox.querySelector('[data-msg-id="' + msg.id + '"]');
+                if (exists) {
+                    return;
+                }
+            }
             const wrapper = document.createElement('div');
             wrapper.className = 'conv-msg ' + (msg.is_me ? 'conv-msg-me' : 'conv-msg-them');
+            if (msg && msg.id) {
+                wrapper.setAttribute('data-msg-id', String(msg.id));
+                // обновляем last-id, чтобы поллинг не принёс это же сообщение повторно
+                const currentLast = parseInt(messagesBox.getAttribute('data-last-id') || '0', 10) || 0;
+                if (msg.id > currentLast) {
+                    messagesBox.setAttribute('data-last-id', String(msg.id));
+                }
+            }
 
             const head = document.createElement('div');
             head.className = 'conv-msg-head';
@@ -308,6 +383,33 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // ===== Агрессивная синхронизация новых сообщений =====
+        (function initPolling() {
+            const pollUrl = messagesBox.getAttribute('data-poll-url');
+            if (!pollUrl) return;
+
+            function pollOnce() {
+                let lastId = parseInt(messagesBox.getAttribute('data-last-id') || '0', 10) || 0;
+                const url = pollUrl + (pollUrl.indexOf('?') === -1 ? '?' : '&') + 'after=' + encodeURIComponent(String(lastId));
+                fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (!data) return;
+                        if (data.last_id && parseInt(String(data.last_id), 10) > lastId) {
+                            messagesBox.setAttribute('data-last-id', String(data.last_id));
+                        }
+                        if (!data.messages || !data.messages.length) return;
+                        data.messages.forEach(function (m) {
+                            appendMessage(m);
+                        });
+                    })
+                    .catch(function () {});
+            }
+
+            // чуть агрессивнее, чем обычный сайт
+            setInterval(pollOnce, 1200);
+        })();
+
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             const text = textarea.value.trim();
@@ -338,6 +440,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (data && data.message) {
                         appendMessage(data.message);
                         textarea.value = '';
+                        // При отправке — прекращаем "печатает"
+                        // (статус сам погаснет по таймауту на сервере)
                         if (fileInput) {
                             fileInput.value = '';
                         }

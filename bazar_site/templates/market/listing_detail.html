@@ -223,6 +223,11 @@
                         <p class="mb-0">
                             <span class="online-indicator {% if seller_is_online %}online-indicator-online{% else %}online-indicator-offline{% endif %}" title="{% if seller_is_online %}Онлайн{% else %}Оффлайн{% endif %}"></span>
                             <a href="{% url 'market:seller_detail' listing.seller.id %}" class="link-success text-decoration-underline fw-semibold">{{ listing.seller.username }}</a>
+                            {% if listing.guarantor %}
+                                <span class="guarantor-label ms-2 align-middle" title="С гарантом"><i class="bi bi-shield-check me-1"></i>Гарант</span>
+                            {% elif seller_profile.is_guarantor %}
+                                <span class="guarantor-label ms-2 align-middle" title="Гарант"><i class="bi bi-shield-check me-1"></i>Гарант</span>
+                            {% endif %}
                             {% if avg_rating %}
                                 <span class="text-warning ms-1">{% for i in "12345" %}{% if forloop.counter <= avg_rating_rounded %}★{% else %}☆{% endif %}{% endfor %}</span>
                                 <span class="small text-muted">{{ avg_rating|floatformat:2 }} ({{ reviews|length }} {{ reviews|length|ru_plural_reviews }})</span>
@@ -233,11 +238,6 @@
                         {% endif %}
                         {% if seller_status %}
                             <span class="status-badge {{ seller_status_class }}">{{ seller_status }}</span>
-                        {% endif %}
-                        {% if listing.guarantor %}
-                            <span class="guarantor-label ms-1"><i class="bi bi-shield-check me-1"></i>С гарантом</span>
-                        {% elif seller_profile.is_guarantor %}
-                            <span class="guarantor-label ms-1">Гарант</span>
                         {% endif %}
                     </div>
                 </div>
@@ -475,9 +475,13 @@
                                     </div>
                                     <span class="listing-chat-badge">Чат</span>
                                 </div>
-                                <div id="listing-chat-messages" class="listing-chat-messages mb-2">
+                                <div id="listing-chat-messages"
+                                     class="listing-chat-messages mb-2"
+                                     data-last-id="{{ listing_chat_last_message_id|default:0 }}"
+                                     data-poll-url="{% url 'market:conversation_poll' conversation.pk %}">
                                 {% for message in messages %}
-                                    <div class="listing-chat-msg {% if message.sender == request.user %}listing-chat-msg-me{% else %}listing-chat-msg-them{% endif %}">
+                                    <div class="listing-chat-msg {% if message.sender == request.user %}listing-chat-msg-me{% else %}listing-chat-msg-them{% endif %}"
+                                         data-msg-id="{{ message.id }}">
                                         {% ifchanged message.sender %}
                                             <div class="listing-chat-msg-head">
                                                 {% if message.sender == request.user %}
@@ -569,66 +573,94 @@
                                         <span>Напишите продавцу первым</span>
                                     </div>
                                 {% endfor %}
+                                    <div id="listing-chat-typing"
+                                         class="listing-chat-typing"
+                                         style="display:none;">
+                                        <span class="listing-chat-typing-name">{{ listing.seller.username }}</span>
+                                        <span class="listing-chat-typing-text">печатает</span>
+                                        <span class="listing-chat-typing-dots" aria-hidden="true">
+                                            <span></span><span></span><span></span>
+                                        </span>
+                                    </div>
                             </div>
-                            {% if listing.status != 'sold' and listing.barter_allowed or listing.status != 'sold' and listing.quantity and listing.quantity > 0 and listing.in_stock or listing.status != 'sold' and listing.deal_type == 'buy' and viewer_sell_listings %}
+                            {% if conversation and listing.status != 'sold' %}
                             <div class="listing-chat-actions-block mt-2 mb-2">
-                                {% if listing.deal_type == 'buy' and viewer_sell_listings and conversation %}
-                                <a href="{% url 'market:conversation_detail' conversation.pk %}"
-                                   class="btn btn-starbaz btn-sm">
-                                    <i class="bi bi-cash-stack me-1"></i>Продать
-                                </a>
-                                {% elif listing.barter_allowed and listing.in_stock and not listing.quantity and not listing.price %}
-                                <form method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="request_barter">
-                                    <button type="submit" class="btn btn-starbaz btn-sm">
-                                        <i class="bi bi-arrow-left-right me-1"></i>Хочу обмен
-                                    </button>
-                                </form>
-                                {% elif listing.quantity and listing.quantity > 0 and listing.in_stock or listing.barter_allowed and listing.in_stock and listing.deal_type != 'buy' %}
-                                {% if buyer_has_pending_purchase %}
-                                <div class="listing-chat-pending small text-muted">
-                                    <i class="bi bi-clock-fill me-1"></i>Заявка на покупку отправлена, ожидайте подтверждения продавца
-                                </div>
+                                {# 1) Если это объявление "Покупаю" — предлагаем перейти в полный чат и "Продать" #}
+                                {% if listing.deal_type == 'buy' and viewer_sell_listings %}
+                                    <a href="{% url 'market:conversation_detail' conversation.pk %}"
+                                       class="btn btn-starbaz btn-sm">
+                                        <i class="bi bi-cash-stack me-1"></i>Продать
+                                    </a>
                                 {% else %}
-                                {% if listing.barter_allowed %}
-                                <form id="listing-chat-barter-form" method="post" class="d-none">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="request_barter">
-                                </form>
-                                {% endif %}
-                                <div class="listing-chat-buy-block" data-unit-price="{{ listing.price }}" data-currency="{{ listing.currency }}">
-                                    <form method="post" action="{% url 'market:conversation_request_purchase' conversation.pk %}" class="listing-chat-buy-form d-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2">
-                                        {% csrf_token %}
-                                        {% if listing.quantity and listing.quantity > 0 %}
-                                        <div class="listing-chat-buy-info small text-muted">В наличии {{ listing.quantity }} шт. · За 1 шт.: {% price_display listing.price_full listing.currency %}</div>
-                                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <label class="d-flex align-items-center gap-1 mb-0">
-                                                <span class="small">Кол-во:</span>
-                                                <input type="number" name="quantity" id="listing-chat-buy-qty" min="1" max="{{ listing.quantity }}" value="1" class="form-control form-control-sm listing-chat-qty-input" style="width: 4.5rem;"
-                                                   oninvalid="this.setCustomValidity('Укажите не более ' + this.getAttribute('max') + ' шт.')"
-                                                   oninput="this.setCustomValidity('')">
-                                            </label>
-                                            <span class="small fw-bold text-success listing-chat-total-display"></span>
-                                            <button type="submit" class="btn btn-starbaz btn-sm">
-                                                <i class="bi bi-cart-check me-1"></i>Купить
-                                            </button>
-                                            {% if listing.barter_allowed %}
-                                            <span class="listing-chat-actions-sep small text-muted">или</span>
-                                            <button type="submit" form="listing-chat-barter-form" class="btn btn-starbaz btn-sm">
-                                                <i class="bi bi-arrow-left-right me-1"></i>Хочу обмен
-                                            </button>
-                                            {% endif %}
+                                    {# 2) Если уже есть ожидающая заявка — показываем только статус #}
+                                    {% if buyer_has_pending_purchase %}
+                                        <div class="listing-chat-pending small text-muted">
+                                            <i class="bi bi-clock-fill me-1"></i>Заявка на покупку отправлена, ожидайте подтверждения продавца
                                         </div>
-                                        {% else %}
-                                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <span class="small text-muted">За {% price_display listing.price_full listing.currency %}</span>
-                                            <input type="hidden" name="quantity" value="1">
-                                            <button type="submit" class="btn btn-starbaz btn-sm">
-                                                <i class="bi bi-cart-check me-1"></i>Купить
-                                            </button>
-                                            {% if listing.barter_allowed %}
-                                            <span class="listing-chat-actions-sep small text-muted">или</span>
+                                    {% else %}
+                                        {# 3) Кнопки покупки/обмена для "Продаю" (в том числе когда quantity = None) #}
+                                        {% if listing.barter_allowed and listing.in_stock %}
+                                            <form id="listing-chat-barter-form" method="post" class="d-none">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="request_barter">
+                                            </form>
+                                        {% endif %}
+
+                                        {% if listing.in_stock and listing.price and listing.deal_type != 'buy' %}
+                                        {% if not listing_has_quantity or listing.quantity > 0 %}
+                                            <div class="listing-chat-buy-block" data-unit-price="{{ listing.price }}" data-currency="{{ listing.currency }}">
+                                                <form method="post"
+                                                      action="{% url 'market:conversation_request_purchase' conversation.pk %}"
+                                                      class="listing-chat-buy-form d-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2">
+                                                    {% csrf_token %}
+                                                    {% if listing_has_quantity %}
+                                                        <div class="listing-chat-buy-info small text-muted">
+                                                            В наличии {{ listing.quantity }} шт. · За 1 шт.: {% price_display listing.price_full listing.currency %}
+                                                        </div>
+                                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                            <label class="d-flex align-items-center gap-1 mb-0">
+                                                                <span class="small">Кол-во:</span>
+                                                                <input type="number"
+                                                                       name="quantity"
+                                                                       id="listing-chat-buy-qty"
+                                                                       min="1"
+                                                                       max="{{ listing.quantity }}"
+                                                                       value="1"
+                                                                       class="form-control form-control-sm listing-chat-qty-input"
+                                                                       style="width: 4.5rem;"
+                                                                       oninvalid="this.setCustomValidity('Укажите не более ' + this.getAttribute('max') + ' шт.')"
+                                                                       oninput="this.setCustomValidity('')">
+                                                            </label>
+                                                            <span class="small fw-bold text-success listing-chat-total-display"></span>
+                                                            <button type="submit" class="btn btn-starbaz btn-sm">
+                                                                <i class="bi bi-cart-check me-1"></i>Купить
+                                                            </button>
+                                                            {% if listing.barter_allowed %}
+                                                                <span class="listing-chat-actions-sep small text-muted">или</span>
+                                                                <button type="submit" form="listing-chat-barter-form" class="btn btn-starbaz btn-sm">
+                                                                    <i class="bi bi-arrow-left-right me-1"></i>Хочу обмен
+                                                                </button>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                            <span class="small text-muted">За {% price_display listing.price_full listing.currency %}</span>
+                                                            <input type="hidden" name="quantity" value="1">
+                                                            <button type="submit" class="btn btn-starbaz btn-sm">
+                                                                <i class="bi bi-cart-check me-1"></i>Купить
+                                                            </button>
+                                                            {% if listing.barter_allowed %}
+                                                                <span class="listing-chat-actions-sep small text-muted">или</span>
+                                                                <button type="submit" form="listing-chat-barter-form" class="btn btn-starbaz btn-sm">
+                                                                    <i class="bi bi-arrow-left-right me-1"></i>Хочу обмен
+                                                                </button>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                </form>
+                                            </div>
+                                        {% endif %}
+                                        {% elif listing.barter_allowed and listing.in_stock and not listing.price %}
                                             <form method="post" class="d-inline">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="action" value="request_barter">
@@ -636,16 +668,17 @@
                                                     <i class="bi bi-arrow-left-right me-1"></i>Хочу обмен
                                                 </button>
                                             </form>
-                                            {% endif %}
-                                        </div>
                                         {% endif %}
-                                    </form>
-                                </div>
-                                {% endif %}
+                                    {% endif %}
                                 {% endif %}
                             </div>
                             {% endif %}
-                            <form id="listing-chat-form" method="post" class="listing-chat-form mb-0" data-send-url="{% url 'market:conversation_send_message' conversation.pk %}">
+                            <form id="listing-chat-form"
+                                  method="post"
+                                  class="listing-chat-form mb-0"
+                                  data-send-url="{% url 'market:conversation_send_message' conversation.pk %}"
+                                  data-typing-ping-url="{% url 'market:conversation_typing_ping' conversation.pk %}"
+                                  data-typing-status-url="{% url 'market:conversation_typing_status' conversation.pk %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="chat">
                                 <div class="listing-chat-form-row">

@@ -51,6 +51,20 @@
     var EQ_BARS_COUNT = 512;
     if (!audio || !toggleBtn || !PLAYLIST.length) return;
 
+    var isMobile = false;
+    try {
+        isMobile = !!(window.matchMedia && window.matchMedia('(max-width: 991.98px)').matches);
+    } catch (e) {
+        isMobile = false;
+    }
+
+    // На мобилке не запускаем эквалайзер (нагрузка на CPU/GPU)
+    if (isMobile) {
+        eqContainer = null;
+        eqCanvas = null;
+        eqCtx = null;
+    }
+
     var audioCtx = null;
     var analyser = null;
     var sourceNode = null;
@@ -171,6 +185,7 @@
     }
 
     function initAudioAnalysis() {
+        if (isMobile) return;
         if (analyser || !eqCtx) return;
         var AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
@@ -250,6 +265,7 @@
     }
 
     function startVisualizerLoop() {
+        if (isMobile) return;
         if (!eqCtx) return;
         if (audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume().catch(function () {});

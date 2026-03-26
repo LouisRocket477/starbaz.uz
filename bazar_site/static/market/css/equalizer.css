@@ -28,8 +28,6 @@ body.music-active .site-equalizer {
 
 @media (max-width: 991.98px) {
     .site-equalizer {
-        top: 50px;
-        width: calc(100vw - 24px);
-        height: 10px;
+        display: none;
     }
 }

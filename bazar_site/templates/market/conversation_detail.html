@@ -238,9 +238,14 @@
             </div>
         </div>
         <div class="conv-messages-card card mb-3">
-            <div class="card-body p-4" id="messages-box" data-last-id="0" data-had-unread="{{ had_unread|yesno:'true,false' }}">
+            <div class="card-body p-4"
+                 id="messages-box"
+                 data-last-id="{{ last_message_id|default:0 }}"
+                 data-poll-url="{% url 'market:conversation_poll' conversation.pk %}"
+                 data-had-unread="{{ had_unread|yesno:'true,false' }}">
                 {% for message in messages %}
-                    <div class="conv-msg {% if message.sender == request.user %}conv-msg-me{% else %}conv-msg-them{% endif %}">
+                    <div class="conv-msg {% if message.sender == request.user %}conv-msg-me{% else %}conv-msg-them{% endif %}"
+                         data-msg-id="{{ message.id }}">
                         {% ifchanged message.sender %}
                             <div class="conv-msg-head">
                                 {% if message.sender == request.user %}
@@ -405,6 +410,16 @@
                 {% empty %}
                     <p class="conv-empty">Сообщений пока нет. Напишите первое!</p>
                 {% endfor %}
+                <div id="conv-typing-indicator"
+                     class="conv-typing-indicator conv-typing-indicator--in-chat"
+                     data-typing-user="{{ other_user.username }}"
+                     style="display:none;">
+                    <span class="conv-typing-name">{{ other_user.username }}</span>
+                    <span class="conv-typing-text">печатает</span>
+                    <span class="conv-typing-dots" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </span>
+                </div>
             </div>
         </div>
         {% if deal_review_data and deal_review_data.can_buyer_leave_review or deal_review_data and deal_review_data.existing_review %}
@@ -479,7 +494,9 @@
               class="conv-form card p-3 mt-0"
               enctype="multipart/form-data"
               id="chat-form"
-              data-send-url="{% url 'market:conversation_send_message' conversation.pk %}">
+              data-send-url="{% url 'market:conversation_send_message' conversation.pk %}"
+              data-typing-ping-url="{% url 'market:conversation_typing_ping' conversation.pk %}"
+              data-typing-status-url="{% url 'market:conversation_typing_status' conversation.pk %}">
             {% csrf_token %}
             <div class="conv-form-body">
                 <div class="d-flex justify-content-between align-items-center mb-1">

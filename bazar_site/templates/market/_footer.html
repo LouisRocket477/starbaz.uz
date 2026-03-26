@@ -40,6 +40,9 @@
             <div class="d-flex align-items-center gap-3">
                 <span class="footer-counter" title="Сейчас на сайте (активные сессии за последние 10 минут)">
                     <i class="bi bi-people-fill"></i> {{ site_online_now|default:0 }}
+                    <span class="ms-2" title="Гостей онлайн">
+                        <i class="bi bi-person"></i> {{ site_guests_online_now|default:0 }}
+                    </span>
                 </span>
                 <span>{{ site_settings.footer_right|default:"StarBaz by Louis Rocket" }}</span>
             </div>

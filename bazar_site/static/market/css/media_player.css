@@ -83,6 +83,15 @@
     .media-player-toggle-nav:focus-visible::before {
         transform: translateX(-50%) translateY(0);
     }
+
+    /* На мобилке убираем анимации/свечение — меньше нагрузки */
+    .media-player-toggle-nav,
+    .media-player-toggle-nav.is-playing {
+        animation: none !important;
+    }
+    .media-player-toggle-nav.is-playing::after {
+        display: none !important;
+    }
 }
 
 /* Когда музыка играет — мягкая зелёная подсветка */

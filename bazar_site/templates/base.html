@@ -35,6 +35,7 @@
 <body
     data-heartbeat-url="{% url 'market:heartbeat' %}"
     data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}"
+    {% if request.user.is_authenticated %}data-nav-status-url="{% url 'market:nav_status' %}"{% endif %}
 >
 <div class="site-equalizer" aria-hidden="true">
     <canvas id="site-equalizer-canvas"></canvas>
@@ -49,6 +50,27 @@
         <a class="navbar-brand d-flex align-items-center" href="/">
             <img src="{% static 'market/images/logo.png' %}" alt="{{ site_settings.logo_text }}" class="navbar-logo">
         </a>
+        {% if request.user.is_authenticated %}
+        <div id="mobileNavQuick" class="d-lg-none ms-auto me-2">
+            <a class="nav-quick-mobile-link" href="{% url 'market:seller_detail' request.user.id %}" aria-label="Профиль">
+                {% if nav_user_profile.avatar %}
+                    <img src="{{ nav_user_profile.avatar.url }}" alt="" class="nav-avatar rounded-circle">
+                {% else %}
+                    <span class="nav-avatar nav-avatar-placeholder rounded-circle d-flex align-items-center justify-content-center"><i class="bi bi-person-fill"></i></span>
+                {% endif %}
+            </a>
+            <a class="nav-quick-mobile-link nav-quick-mobile-link--chat" href="{% url 'market:conversation_list' %}" aria-label="Чат">
+                <span class="position-relative d-inline-flex">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    <span id="navUnreadDotMobileTop" class="nav-unread-dot" {% if not nav_unread_chat_count or nav_unread_chat_count < 1 %}style="display:none;"{% endif %}></span>
+                    <span id="navAdminTicketDotMobileTop"
+                          class="nav-admin-ticket-dot"
+                          {% if not nav_open_support_tickets or nav_open_support_tickets < 1 %}style="display:none;"{% endif %}
+                          title="Открытые тикеты: {{ nav_open_support_tickets|default:0 }}"></span>
+                </span>
+            </a>
+        </div>
+        {% endif %}
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -79,7 +101,7 @@
             </ul>
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 {% if request.user.is_authenticated %}
-                    <li class="nav-item me-lg-2 mb-2 mb-lg-0">
+                    <li class="nav-item me-lg-2 mb-2 mb-lg-0 d-none d-lg-block">
                         <a class="nav-link d-flex align-items-center gap-2 text-decoration-none" href="{% url 'market:seller_detail' request.user.id %}">
                             {% if nav_user_profile.avatar %}
                                 <img src="{{ nav_user_profile.avatar.url }}" alt="" class="nav-avatar rounded-circle">
@@ -89,16 +111,15 @@
                             <span class="nav-nickname">{{ nav_user_profile.game_nickname|default:request.user.username }}</span>
                         </a>
                     </li>
-                    <li class="nav-item me-lg-2 mb-2 mb-lg-0">
+                    <li class="nav-item me-lg-2 mb-2 mb-lg-0 d-none d-lg-block">
                         <a class="nav-link d-flex align-items-center gap-1" href="{% url 'market:conversation_list' %}">
                             <span class="position-relative d-inline-flex">
                                 <i class="bi bi-chat-dots-fill"></i>
-                                {% if nav_unread_chat_count > 0 %}
-                                    <span class="nav-unread-dot"></span>
-                                {% endif %}
-                                {% if nav_open_support_tickets and nav_open_support_tickets > 0 %}
-                                    <span class="nav-admin-ticket-dot" title="Открытые тикеты: {{ nav_open_support_tickets }}"></span>
-                                {% endif %}
+                                <span id="navUnreadDot" class="nav-unread-dot" {% if not nav_unread_chat_count or nav_unread_chat_count < 1 %}style="display:none;"{% endif %}></span>
+                                <span id="navAdminTicketDot"
+                                      class="nav-admin-ticket-dot"
+                                      {% if not nav_open_support_tickets or nav_open_support_tickets < 1 %}style="display:none;"{% endif %}
+                                      title="Открытые тикеты: {{ nav_open_support_tickets|default:0 }}"></span>
                             </span>
                             <span>Чат</span>
                         </a>
@@ -109,6 +130,7 @@
                     <li class="nav-item ms-lg-2 mb-2 mb-lg-0 d-flex align-items-center">
                         <button type="button" id="media-player-toggle" class="media-player-toggle media-player-toggle-nav" aria-label="Открыть плеер" title="Плеер">
                             <i class="bi bi-music-note-beamed"></i>
+                            <span class="d-lg-none ms-2">Музыка</span>
                         </button>
                     </li>
                 {% else %}
@@ -119,6 +141,7 @@
                     <li class="nav-item ms-lg-2 mb-2 mb-lg-0 d-flex align-items-center">
                         <button type="button" id="media-player-toggle" class="media-player-toggle media-player-toggle-nav" aria-label="Открыть плеер" title="Плеер">
                             <i class="bi bi-music-note-beamed"></i>
+                            <span class="d-lg-none ms-2">Музыка</span>
                         </button>
                     </li>
                 {% endif %}
@@ -128,6 +151,9 @@
 </nav>
 
 <audio id="media-audio" preload="metadata"></audio>
+<audio id="site-notify-sound" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+</audio>
 
 <main class="container mb-5">
     {% block content %}{% endblock %}
