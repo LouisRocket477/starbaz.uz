@@ -5,6 +5,23 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
+.support-chat-toolbar {
+    padding: 8px 10px;
+    border: 1px solid rgba(51, 65, 85, 0.55);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.08), transparent 55%),
+        rgba(2, 6, 23, 0.42);
+}
+
+.support-chat-shell {
+    overflow: hidden;
+}
+
+.support-chat-body {
+    padding: 14px 14px 16px;
+}
+
 .support-my-tabs {
     display: flex;
     gap: 10px;
@@ -145,11 +162,11 @@
 }
 
 .support-ticket-block {
-    padding: 10px 10px;
+    padding: 12px 12px;
     border-radius: 14px;
     border: 1px solid rgba(51, 65, 85, 0.65);
     background: rgba(15, 23, 42, 0.65);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .support-ticket-block--initial {
@@ -180,9 +197,10 @@
 .support-thread {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     position: relative;
     padding-left: 10px;
+    min-height: 72px;
 }
 
 .support-thread::before {
@@ -201,11 +219,12 @@
 }
 
 .support-msg {
-    padding: 10px 10px;
+    padding: 11px 12px;
     border-radius: 14px;
     border: 1px solid rgba(51, 65, 85, 0.7);
     background: rgba(2, 6, 23, 0.35);
     position: relative;
+    backdrop-filter: blur(2px);
 }
 
 .support-msg.is-admin {
@@ -272,6 +291,7 @@
 
 .support-msg-text {
     color: rgba(229, 231, 235, 0.86);
+    line-height: 1.45;
 }
 
 .support-msg-attach {
@@ -309,6 +329,9 @@
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid rgba(51, 65, 85, 0.45);
+    background: rgba(2, 6, 23, 0.22);
+    border-radius: 14px;
+    padding: 12px;
 }
 
 .support-reply-grid {
@@ -316,6 +339,28 @@
     grid-template-columns: 1fr;
     gap: 10px;
     margin-bottom: 10px;
+}
+
+.support-reply-form .form-label {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: rgba(203, 213, 225, 0.94);
+}
+
+.support-reply-form .form-control {
+    border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(2, 6, 23, 0.56);
+    color: rgba(226, 232, 240, 0.96);
+}
+
+.support-reply-form .form-control::placeholder {
+    color: rgba(148, 163, 184, 0.86);
+}
+
+.support-reply-form .form-control:focus {
+    border-color: rgba(56, 189, 248, 0.7);
+    box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.17);
+    background: rgba(2, 6, 23, 0.7);
 }
 
 @media (min-width: 992px) {
@@ -329,5 +374,14 @@
     margin-top: 10px;
     color: rgba(148, 163, 184, 0.95);
     font-size: 0.9rem;
+}
+
+@media (max-width: 767.98px) {
+    .support-chat-body {
+        padding: 12px 10px 14px;
+    }
+    .support-chat-toolbar {
+        padding: 8px;
+    }
 }
 

@@ -48,10 +48,13 @@ urlpatterns = [
     path("support/", views.support_hub, name="support"),
     path("support/new/", views.support_new, name="support_new"),
     path("support/my/", views.support_my, name="support_my"),
+    path("support/ticket/<int:pk>/", views.support_ticket_detail, name="support_ticket_detail"),
     path("support/faq/", views.support_faq, name="support_faq"),
     path("support/thanks/", views.support_thanks, name="support_thanks"),
     path("support/dispute/<int:conversation_id>/", views.support_dispute, name="support_dispute"),
     path("support/ticket/<int:pk>/reply/", support_reply, name="support_reply"),
+    path("support/admin/", views.support_admin_list, name="support_admin_list"),
+    path("support/admin/ticket/<int:pk>/", views.support_admin_ticket, name="support_admin_ticket"),
     path("premium/", views.premium_options, name="premium_options"),
 ]
 

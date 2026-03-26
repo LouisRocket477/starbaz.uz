@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "market/_support_nav.html" %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-9 col-xl-8">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 support-chat-toolbar">
+      <div>
+        <h1 class="h5 mb-1">Чат с администрацией · тикет #{{ ticket.id }}</h1>
+        <div class="small text-muted">
+          {% if ticket.subject %}{{ ticket.subject }} · {% endif %}
+          {{ ticket.get_request_type_display }} · {{ ticket.created_at|date:"d.m.Y H:i" }}
+        </div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-light btn-sm" href="{% url 'market:support_my' %}">
+          <i class="bi bi-inboxes me-1"></i> Мои тикеты
+        </a>
+        {% if ticket.is_closed %}
+          <span class="badge bg-success align-self-center">Закрыт</span>
+        {% else %}
+          <span class="badge bg-secondary align-self-center">В работе</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card bg-dark border-0 shadow-sm support-my-card support-chat-shell">
+      <div class="card-body support-chat-body">
+        <div class="support-ticket-block support-ticket-block--initial">
+          <div class="support-ticket-block-title">Ваше исходное сообщение</div>
+          <div class="support-ticket-block-text">{{ ticket.message|linebreaks }}</div>
+        </div>
+
+        <div class="support-ticket-block support-ticket-block--thread">
+          <div class="support-ticket-block-title">Переписка</div>
+          {% if messages %}
+            <div class="support-thread">
+              {% for msg in messages %}
+                {% if forloop.first and msg.author_id == ticket.author_id and msg.text and msg.text == ticket.message|default:"" %}
+                  {# skip duplicate of initial message #}
+                {% else %}
+                  <div class="support-msg{% if msg.author_id == ticket.author_id %} is-me{% else %} is-admin{% endif %}">
+                    <div class="support-msg-head">
+                      <span class="support-msg-who">
+                        {% if msg.author_id == ticket.author_id %}
+                          Вы
+                        {% elif msg.author %}
+                          Администрация ({{ msg.author.username }})
+                        {% else %}
+                          Администрация
+                        {% endif %}
+                      </span>
+                      <span class="support-msg-time">{{ msg.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    {% if msg.text %}
+                      <div class="support-msg-text">{{ msg.text|linebreaks }}</div>
+                    {% endif %}
+                    {% if msg.screenshot %}
+                      <div class="support-msg-attach">
+                        <a href="{{ msg.screenshot.url }}" target="_blank" class="text-decoration-underline">Открыть скриншот</a>
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="small text-muted">Сообщений пока нет.</div>
+          {% endif %}
+        </div>
+
+        {% if ticket.admin_reply %}
+          <div class="support-ticket-highlight support-ticket-highlight--admin">
+            <div class="support-ticket-highlight-title">Итоговый ответ администрации</div>
+            <div class="support-ticket-highlight-text">{{ ticket.admin_reply|linebreaks }}</div>
+          </div>
+        {% endif %}
+
+        {% if ticket.is_closed %}
+          <div class="support-my-closed-note">
+            Тикет закрыт. Если нужно — создайте новый тикет.
+          </div>
+        {% else %}
+          <form method="post" enctype="multipart/form-data" class="support-reply-form">
+            {% csrf_token %}
+            <div class="support-reply-grid">
+              <div>
+                <label class="form-label">Сообщение</label>
+                <textarea name="message" rows="4" class="form-control" placeholder="Напишите сообщение администрации"></textarea>
+              </div>
+              <div>
+                <label class="form-label">Скриншот (опционально)</label>
+                <input type="file" name="screenshot" class="form-control" accept="image/*">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-starbaz">
+              <i class="bi bi-send me-1"></i> Отправить
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'market/css/support_my.css' %}">
+{% endblock %}
+

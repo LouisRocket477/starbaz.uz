@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "market/_support_nav.html" %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-9">
+    <div class="card bg-dark border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-2">
+          <div>
+            <h1 class="h4 mb-1">Тикеты поддержки</h1>
+            <div class="small text-muted">Панель оператора: ответы, переписка и закрытие тикетов.</div>
+          </div>
+          <a class="btn btn-outline-light btn-sm" href="{% url 'market:support_admin_list' %}">
+            <i class="bi bi-arrow-clockwise me-1"></i> Обновить
+          </a>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-lg-7">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div class="fw-semibold">Открытые</div>
+              <span class="badge bg-danger">{{ open_tickets|length }}</span>
+            </div>
+            {% if open_tickets %}
+              <div class="list-group">
+                {% for t in open_tickets %}
+                  <a class="list-group-item list-group-item-action bg-dark text-light border-secondary"
+                     href="{% url 'market:support_admin_ticket' t.id %}">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                      <div>
+                        <div class="fw-semibold">
+                          {% if t.subject %}{{ t.subject|truncatechars:64 }}{% else %}Тикет #{{ t.id }}{% endif %}
+                        </div>
+                        <div class="small text-muted">
+                          #{{ t.id }} · {{ t.created_at|date:"d.m.Y H:i" }}
+                          {% if t.author %} · {{ t.author.username }} (ID: {{ t.author.id }}){% else %} · гость{% endif %}
+                        </div>
+                      </div>
+                      <span class="badge bg-danger bg-opacity-75">Открыт</span>
+                    </div>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="small text-muted">Открытых тикетов нет.</div>
+            {% endif %}
+          </div>
+
+          <div class="col-lg-5">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <div class="fw-semibold">Недавние закрытые</div>
+              <span class="badge bg-success">{{ closed_tickets|length }}</span>
+            </div>
+            {% if closed_tickets %}
+              <div class="list-group">
+                {% for t in closed_tickets %}
+                  <a class="list-group-item list-group-item-action bg-dark text-light border-secondary"
+                     href="{% url 'market:support_admin_ticket' t.id %}">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                      <div>
+                        <div class="fw-semibold">
+                          {% if t.subject %}{{ t.subject|truncatechars:48 }}{% else %}Тикет #{{ t.id }}{% endif %}
+                        </div>
+                        <div class="small text-muted">
+                          #{{ t.id }} · {{ t.created_at|date:"d.m.Y H:i" }}
+                        </div>
+                      </div>
+                      <span class="badge bg-success bg-opacity-75">Закрыт</span>
+                    </div>
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="small text-muted">Закрытых тикетов пока нет.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

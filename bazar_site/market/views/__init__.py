@@ -55,6 +55,8 @@ from .public import (
     seller_reviews,
 )
 from ..support.views import support_hub, support_new, support_my, support_faq, support_thanks, support_dispute, premium_options
+from ..support.views import support_ticket_detail
+from ..support.views_admin import support_admin_list, support_admin_ticket
 
 __all__ = [
     "_get_site_settings_context",
@@ -108,6 +110,9 @@ __all__ = [
     "support_dispute",
     "premium_options",
     "support_thanks",
+    "support_ticket_detail",
+    "support_admin_list",
+    "support_admin_ticket",
     "seller_detail",
     "seller_reviews",
 ]

@@ -65,6 +65,22 @@ def conversation_list(request):
     can_view_support = bool(user_profile.is_project_admin or user_profile.is_operator or request.user.is_superuser)
     open_support_count = 0
     user_trade_tickets = []
+    my_open_support_requests = []
+    my_open_support_count = 0
+    try:
+        from ..support.models import SupportRequest
+
+        my_open_support_requests = list(
+            SupportRequest.objects.filter(author=request.user, is_resolved=False)
+            .order_by("-created_at")[:10]
+        )
+        my_open_support_count = SupportRequest.objects.filter(
+            author=request.user,
+            is_resolved=False,
+        ).count()
+    except Exception:
+        my_open_support_requests = []
+        my_open_support_count = 0
     if can_view_support:
         try:
             from ..support.models import SupportRequest
@@ -136,7 +152,7 @@ def conversation_list(request):
         if user_trade_tickets:
             last_trade_ui = None
 
-    show_right_panel = bool(can_view_support or last_trade_ui or user_trade_tickets)
+    show_right_panel = bool(can_view_support or last_trade_ui or user_trade_tickets or my_open_support_count > 0)
     return render(
         request,
         "market/conversation_list.html",
@@ -150,6 +166,8 @@ def conversation_list(request):
             "dispute_window_seconds": dispute_window_seconds,
             "last_trade_ui": last_trade_ui,
             "user_trade_tickets": user_trade_tickets,
+            "my_open_support_requests": my_open_support_requests,
+            "my_open_support_count": my_open_support_count,
         },
     )
 

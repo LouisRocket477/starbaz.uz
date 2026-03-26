@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from ..site.services import get_site_settings
 from ..support.models import SupportRequest, SupportFAQ, SupportMessage
 from ..models import Conversation, PurchaseRequest
+from django.utils import timezone
 
 
 def support_hub(request):
@@ -101,6 +102,46 @@ def support_my(request):
             "page_title": "Мои тикеты — Поддержка StarBaz",
             "meta_description": "Личный кабинет поддержки: ваши обращения, статусы и ответы администрации StarBaz.",
             "meta_keywords": "StarBaz, мои тикеты, поддержка, обращения",
+        },
+    )
+
+
+@login_required
+def support_ticket_detail(request, pk: int):
+    """Тикет как чат: переписка пользователя с администрацией на отдельной странице."""
+    ticket = get_object_or_404(
+        SupportRequest.objects.select_related("author"),
+        pk=pk,
+    )
+    if ticket.author_id != request.user.id:
+        return HttpResponseForbidden("Недостаточно прав для этого тикета.")
+
+    if request.method == "POST" and not ticket.is_closed:
+        text = (request.POST.get("message") or "").strip()
+        screenshot = request.FILES.get("screenshot")
+        if text or screenshot:
+            SupportMessage.objects.create(
+                request=ticket,
+                author=request.user,
+                text=text,
+                screenshot=screenshot,
+            )
+            return redirect("market:support_ticket_detail", pk=ticket.id)
+
+    messages = list(
+        SupportMessage.objects.select_related("author")
+        .filter(request=ticket)
+        .order_by("created_at", "pk")
+    )
+
+    return render(
+        request,
+        "market/support_ticket_detail.html",
+        {
+            "site_settings": get_site_settings(),
+            "ticket": ticket,
+            "messages": messages,
+            "page_title": f"Тикет #{ticket.id} — Поддержка",
         },
     )
 

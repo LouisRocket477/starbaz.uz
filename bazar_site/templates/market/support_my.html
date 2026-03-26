@@ -71,6 +71,11 @@
 
                                         <div id="openTicket{{ item.id }}" class="collapse">
                                             <div class="support-ticket-body">
+                                                <div class="d-flex justify-content-end mb-2">
+                                                    <a class="btn btn-outline-light btn-sm" href="{% url 'market:support_ticket_detail' item.id %}">
+                                                        <i class="bi bi-chat-dots me-1"></i> Открыть как чат
+                                                    </a>
+                                                </div>
                                                 <div class="support-ticket-block support-ticket-block--initial">
                                                     <div class="support-ticket-block-title">Ваше исходное сообщение</div>
                                                     <div class="support-ticket-block-text">{{ item.message|linebreaks }}</div>
@@ -174,6 +179,11 @@
 
                                         <div id="closedTicket{{ item.id }}" class="collapse">
                                             <div class="support-ticket-body">
+                                                <div class="d-flex justify-content-end mb-2">
+                                                    <a class="btn btn-outline-light btn-sm" href="{% url 'market:support_ticket_detail' item.id %}">
+                                                        <i class="bi bi-chat-dots me-1"></i> Открыть как чат
+                                                    </a>
+                                                </div>
                                                 <div class="support-ticket-block">
                                                     <div class="support-ticket-block-title">Ваше исходное сообщение</div>
                                                     <div class="support-ticket-block-text">{{ item.message|linebreaks }}</div>
